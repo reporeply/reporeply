@@ -1,0 +1,13 @@
+name: Repo-Wizrd Daily Scan
+
+on:
+  schedule:
+    - cron: "0 2 * * *" # daily at 02:00 UTC
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call daily cron endpoint
+        run: |
+          curl -X POST https://your-domain.com/cron/daily

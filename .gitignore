@@ -1,0 +1,8 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+
+# GitHub App private keys
+*.pem
