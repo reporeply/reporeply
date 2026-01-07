@@ -4,7 +4,8 @@ set -e
 cd /root/reporeply
 
 echo "Pulling latest code..."
-git pull origin main
+git fetch origin
+git reset --hard origin/main
 
 echo "Installing dependencies..."
 npm install --production
