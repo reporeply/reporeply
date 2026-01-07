@@ -1,5 +1,5 @@
 {
-  "name": "repo-wizrd-server",
+  "name": "reporeply-server",
   "version": "1.0.0",
   "type": "module",
   "main": "index.js",
@@ -10,7 +10,6 @@
     "@octokit/rest": "^22.0.1",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
-    "fs": "^0.0.1-security",
     "jsonwebtoken": "^9.0.3"
   }
 }

@@ -1,4 +1,4 @@
-name: Deploy Repo-Wizard to Droplet
+name: Deploy RepoReply to Droplet
 
 on:
   push:
@@ -20,4 +20,4 @@ jobs:
           username: ${{ secrets.DO_USER }}
           key: ${{ secrets.DO_SSH_KEY }}
           script: |
-            /root/deploy.sh
+            /root/reporeply/deploy.sh

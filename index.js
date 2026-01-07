@@ -17,6 +17,20 @@ const MS_IN_DAY = 24 * 60 * 60 * 1000;
 const app = express();
 app.use(express.json());
 
+app.post("/", (req, res) => {
+  console.log("Webhook received");
+  console.log("Event:", req.headers["x-github-event"]);
+  console.log("Payload:", JSON.stringify(req.body, null, 2));
+
+  // IMPORTANT: Always respond fast
+  res.status(200).send("OK");
+});
+
+app.get("/", (req, res) => {
+  res.status(200).send("RepoReply server is running");
+});
+
+
 /* -------------------- Auth Helpers -------------------- */
 
 function createAppJWT() {
