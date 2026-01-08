@@ -15,6 +15,21 @@ cp nginx/index.html /var/www/html/index.html
 chown www-data:www-data /var/www/html/index.html
 chmod 644 /var/www/html/index.html
 
+echo "Deploying nginx privacy-policy.html..."
+cp nginx/privacy-policy.html /var/www/html/privacy-policy.html
+chown www-data:www-data /var/www/html/privacy-policy.html
+chmod 644 /var/www/html/privacy-policy.html
+
+echo "Deploying nginx contact-us.html..."
+cp nginx/contact-us.html /var/www/html/contact-us.html
+chown www-data:www-data /var/www/html/contact-us.html
+chmod 644 /var/www/html/contact-us.html
+
+echo "Deploying nginx favicon.png..."
+cp nginx/favicon.png /var/www/html/favicon.png
+chown www-data:www-data /var/www/html/favicon.png
+chmod 644 /var/www/html/favicon.png
+
 echo "Reloading nginx..."
 nginx -t
 systemctl reload nginx
