@@ -32,7 +32,6 @@ app.get("/", (req, res) => {
   res.status(200).send("RepoReply server is running");
 });
 
-
 /* -------------------- Auth Helpers -------------------- */
 
 function createAppJWT() {
@@ -73,38 +72,32 @@ function daysSince(date) {
 }
 
 async function hasInactivityWarning(octokit, owner, repo, issueNumber) {
-  const comments = await octokit.paginate(
-    octokit.issues.listComments,
-    {
-      owner,
-      repo,
-      issue_number: issueNumber,
-      per_page: 100,
-    }
-  );
+  const comments = await octokit.paginate(octokit.issues.listComments, {
+    owner,
+    repo,
+    issue_number: issueNumber,
+    per_page: 100,
+  });
 
   return comments.some(
-    c => c.user?.type === "Bot" && c.body?.includes("inactive for")
+    (c) => c.user?.type === "Bot" && c.body?.includes("inactive for")
   );
 }
 
 /* -------------------- Inactivity Logic -------------------- */
 
 async function scanInactiveIssues(octokit, owner, repo) {
-  const issues = await octokit.paginate(
-    octokit.issues.listForRepo,
-    {
-      owner,
-      repo,
-      state: "open",
-      per_page: 100,
-    }
-  );
+  const issues = await octokit.paginate(octokit.issues.listForRepo, {
+    owner,
+    repo,
+    state: "open",
+    per_page: 100,
+  });
 
   for (const issue of issues) {
     if (issue.pull_request) continue;
 
-    const labels = issue.labels.map(l =>
+    const labels = issue.labels.map((l) =>
       typeof l === "string" ? l : l.name
     );
 
@@ -204,8 +197,9 @@ app.post("/cron/daily", async (req, res) => {
     const appJWT = createAppJWT();
     const appOctokit = new Octokit({ auth: appJWT });
 
-    const { data: installations } =
-      await appOctokit.request("GET /app/installations");
+    const { data: installations } = await appOctokit.request(
+      "GET /app/installations"
+    );
 
     for (const installation of installations) {
       const octokit = await getInstallationOctokit(installation.id);
@@ -216,11 +210,7 @@ app.post("/cron/daily", async (req, res) => {
       );
 
       for (const repo of repos) {
-        await scanInactiveIssues(
-          octokit,
-          repo.owner.login,
-          repo.name
-        );
+        await scanInactiveIssues(octokit, repo.owner.login, repo.name);
       }
     }
 
