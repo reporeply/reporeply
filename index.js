@@ -254,7 +254,7 @@ app.post("/cron/daily", async (req, res) => {
 /* -------------------- Server -------------------- */
 
 app.get("/", (req, res) => {
-  res.send("Repo-Wizrd server running");
+  res.send("Reporeply server running");
 });
 
 /* -------------------- Server Testing Part -------------------- */
