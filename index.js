@@ -4,15 +4,6 @@ import jwt from "jsonwebtoken";
 import { Octokit } from "@octokit/rest";
 import dotenv from "dotenv";
 
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Serve static files
-app.use(express.static(path.join(__dirname, "nginx")));
-
 dotenv.config();
 
 /* -------------------- Configuration -------------------- */
@@ -39,16 +30,6 @@ app.post("/", (req, res) => {
 
 app.get("/", (req, res) => {
   res.status(200).send("RepoReply server is running");
-});
-
-// Privacy Policy
-app.get("/privacy-policy", (req, res) => {
-  res.sendFile(path.join(__dirname, "nginx/privacy-policy.html"));
-});
-
-// Contact Us
-app.get("/contact-us", (req, res) => {
-  res.sendFile(path.join(__dirname, "nginx/contact-us.html"));
 });
 
 /* -------------------- Auth Helpers -------------------- */
