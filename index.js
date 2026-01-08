@@ -47,9 +47,19 @@ app.get("/rohansatkar", (req, res) => {
   res.sendFile(path.join(__dirname, "nginx/rohansatkar.html"));
 });
 
-// Contact Us
+// sitemap.xml
+app.get("/sitemap.xml", (req, res) => {
+  res.sendFile(path.join(__dirname, "nginx/sitemap.xml"));
+});
+
+//coderxrohan
 app.get("/coderxrohan", (req, res) => {
-  res.sendFile(path.join(__dirname, "nginx/coderrohan.html"));
+  res.sendFile(path.join(__dirname, "nginx/coderxrohan.html"));
+});
+
+//rohansatkar
+app.get("/rohansatkar", (req, res) => {
+  res.sendFile(path.join(__dirname, "nginx/rohansatkar.html"));
 });
 
 /* -------------------- Auth Helpers -------------------- */
