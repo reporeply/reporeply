@@ -32,6 +32,26 @@ app.get("/", (req, res) => {
   res.status(200).send("RepoReply server is running");
 });
 
+// Privacy Policy
+app.get("/privacy-policy", (req, res) => {
+  res.sendFile(path.join(__dirname, "nginx/privacy-policy.html"));
+});
+
+// Contact Us
+app.get("/contact-us", (req, res) => {
+  res.sendFile(path.join(__dirname, "nginx/contact-us.html"));
+});
+
+// Privacy Policy
+app.get("/rohansatkar", (req, res) => {
+  res.sendFile(path.join(__dirname, "nginx/rohansatkar.html"));
+});
+
+// Contact Us
+app.get("/coderxrohan", (req, res) => {
+  res.sendFile(path.join(__dirname, "nginx/coderrohan.html"));
+});
+
 /* -------------------- Auth Helpers -------------------- */
 
 function createAppJWT() {
