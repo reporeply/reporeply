@@ -62,6 +62,11 @@ app.get("/robots.txt", (req, res) => {
   res.sendFile(path.join(__dirname, "nginx/robots.txt"));
 });
 
+//favicon.png
+app.get("/favicon.png", (req, res) => {
+  res.sendFile(path.join(__dirname, "nginx/favicon.png"));
+});
+
 /* -------------------- Auth Helpers -------------------- */
 
 function createAppJWT() {
