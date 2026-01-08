@@ -42,11 +42,6 @@ app.get("/contact-us", (req, res) => {
   res.sendFile(path.join(__dirname, "nginx/contact-us.html"));
 });
 
-// Privacy Policy
-app.get("/rohansatkar", (req, res) => {
-  res.sendFile(path.join(__dirname, "nginx/rohansatkar.html"));
-});
-
 // sitemap.xml
 app.get("/sitemap.xml", (req, res) => {
   res.sendFile(path.join(__dirname, "nginx/sitemap.xml"));
@@ -60,6 +55,11 @@ app.get("/coderxrohan", (req, res) => {
 //rohansatkar
 app.get("/rohansatkar", (req, res) => {
   res.sendFile(path.join(__dirname, "nginx/rohansatkar.html"));
+});
+
+//robots.txt
+app.get("/robots.txt", (req, res) => {
+  res.sendFile(path.join(__dirname, "nginx/robots.txt"));
 });
 
 /* -------------------- Auth Helpers -------------------- */
