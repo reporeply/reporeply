@@ -30,6 +30,21 @@ cp nginx/favicon.png /var/www/html/favicon.png
 chown www-data:www-data /var/www/html/favicon.png
 chmod 644 /var/www/html/favicon.png
 
+echo "Deploying nginx rohansatkar.html..."
+cp nginx/rohansatkar.html /var/www/html/rohansatkar.html
+chown www-data:www-data /var/www/html/rohansatkar.html
+chmod 644 /var/www/html/rohansatkar.html
+
+echo "Deploying nginx coderxrohan.html..."
+cp nginx/coderxrohan.html /var/www/html/coderxrohan.html
+chown www-data:www-data /var/www/html/coderxrohan.html
+chmod 644 /var/www/html/coderxrohan.html
+
+echo "Deploying nginx sitemap.xml..."
+cp nginx/sitemap.xml /var/www/html/sitemap.xml
+chown www-data:www-data /var/www/html/sitemap.xml
+chmod 644 /var/www/html/sitemap.xml
+
 echo "Reloading nginx..."
 nginx -t
 systemctl reload nginx
