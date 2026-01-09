@@ -242,6 +242,8 @@ app.post("/webhook", async (req, res) => {
 /* -------------------- Telegram Bot Webhook -------------------- */
 
 app.post("/telegram/webhook", async (req, res) => {
+   console.log("📩 Telegram webhook hit");
+  console.log(JSON.stringify(req.body, null, 2))
   try {
     const message = req.body?.message;
     if (!message) {

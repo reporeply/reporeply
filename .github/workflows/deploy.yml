@@ -22,5 +22,13 @@ jobs:
           script: |
             cd /root/reporeply
             ls -la
-            chmod +x deploy.sh
+
+            chmod +x telegram.sh deploy.sh
+
+            echo "Running telegram setup..."
+            ./telegram.sh
+
+            echo "Running deployment..."
             ./deploy.sh
+            
+            echo "Deployment completed."
