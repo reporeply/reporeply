@@ -1,10 +1,43 @@
+/**
+ * File: index.js
+ *
+ * Purpose:
+ * - Main entry point of the RepoReply server.
+ *
+ * Responsibilities:
+ * - Starts the Express server.
+ * - Receives GitHub webhook events.
+ * - Authenticates GitHub App requests.
+ * - Routes events to the correct handlers.
+ * - Triggers inactivity checks and automation.
+ *
+ * Why this file exists:
+ * - Central bootstrap file.
+ * - Keeps all feature logic delegated to other modules.
+ */
+
+import dotenv from "dotenv";
+dotenv.config(); // MUST be first
+
 import express from "express";
 import fs from "fs";
+import path from "path";
 import jwt from "jsonwebtoken";
 import { Octokit } from "@octokit/rest";
-import dotenv from "dotenv";
+import { fileURLToPath } from "url";
+import { handleTelegramCommand } from "./alerts/telegram.commands.js";
+import { handleMention } from "./webhooks/mention.handler.js";
+import { logReminderIntegrity } from "./reminders/reminder.service.js";
+import "./reminders/reminder.scheduler.js";
 
-dotenv.config();
+/* -------------------- ESM dirname fix -------------------- */
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+/* -------------------- Startup Integrity -------------------- */
+
+logReminderIntegrity();
 
 /* -------------------- Configuration -------------------- */
 
@@ -19,53 +52,41 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
 
-app.post("/", (req, res) => {
-  console.log("Webhook received");
-  console.log("Event:", req.headers["x-github-event"]);
-  console.log("Payload:", JSON.stringify(req.body, null, 2));
-
-  // IMPORTANT: Always respond fast
-  res.status(200).send("OK");
-});
+/* -------------------- Health Check -------------------- */
 
 app.get("/", (req, res) => {
   res.status(200).send("RepoReply server is running");
 });
 
-// Privacy Policy
-app.get("/privacy-policy", (req, res) => {
-  res.sendFile(path.join(__dirname, "nginx/privacy-policy.html"));
-});
+/* -------------------- Static Pages -------------------- */
 
-// Contact Us
-app.get("/contact-us", (req, res) => {
-  res.sendFile(path.join(__dirname, "nginx/contact-us.html"));
-});
+app.get("/privacy-policy", (req, res) =>
+  res.sendFile(path.join(__dirname, "nginx/privacy-policy.html"))
+);
 
-// sitemap.xml
-app.get("/sitemap.xml", (req, res) => {
-  res.sendFile(path.join(__dirname, "nginx/sitemap.xml"));
-});
+app.get("/contact-us", (req, res) =>
+  res.sendFile(path.join(__dirname, "nginx/contact-us.html"))
+);
 
-//coderxrohan
-app.get("/coderxrohan", (req, res) => {
-  res.sendFile(path.join(__dirname, "nginx/coderxrohan.html"));
-});
+app.get("/sitemap.xml", (req, res) =>
+  res.sendFile(path.join(__dirname, "nginx/sitemap.xml"))
+);
 
-//rohansatkar
-app.get("/rohansatkar", (req, res) => {
-  res.sendFile(path.join(__dirname, "nginx/rohansatkar.html"));
-});
+app.get("/coderxrohan", (req, res) =>
+  res.sendFile(path.join(__dirname, "nginx/coderxrohan.html"))
+);
 
-//robots.txt
-app.get("/robots.txt", (req, res) => {
-  res.sendFile(path.join(__dirname, "nginx/robots.txt"));
-});
+app.get("/rohansatkar", (req, res) =>
+  res.sendFile(path.join(__dirname, "nginx/rohansatkar.html"))
+);
 
-//favicon.png
-app.get("/favicon.png", (req, res) => {
-  res.sendFile(path.join(__dirname, "nginx/favicon.png"));
-});
+app.get("/robots.txt", (req, res) =>
+  res.sendFile(path.join(__dirname, "nginx/robots.txt"))
+);
+
+app.get("/favicon.png", (req, res) =>
+  res.sendFile(path.join(__dirname, "nginx/favicon.png"))
+);
 
 /* -------------------- Auth Helpers -------------------- */
 
@@ -140,7 +161,6 @@ async function scanInactiveIssues(octokit, owner, repo) {
 
     const inactiveDays = daysSince(issue.updated_at);
 
-    // Warning
     if (inactiveDays >= INACTIVITY_DAYS) {
       const warned = await hasInactivityWarning(
         octokit,
@@ -156,24 +176,20 @@ async function scanInactiveIssues(octokit, owner, repo) {
           issue_number: issue.number,
           body:
             `This issue has been inactive for ${INACTIVITY_DAYS} days.\n\n` +
-            `If no further activity occurs, it will be automatically closed in ` +
-            `${GRACE_PERIOD_DAYS} days.`,
+            `If no further activity occurs, it will be automatically closed in ${GRACE_PERIOD_DAYS} days.`,
         });
-
-        console.log(`Warning posted on #${issue.number}`);
         continue;
       }
     }
 
-    // Auto-close
     if (inactiveDays >= INACTIVITY_DAYS + GRACE_PERIOD_DAYS) {
       await octokit.issues.createComment({
         owner,
         repo,
         issue_number: issue.number,
         body:
-          `Closing this issue due to prolonged inactivity.\n\n` +
-          `If this is still relevant, please reopen with updated information.`,
+          "Closing this issue due to prolonged inactivity.\n\n" +
+          "If this is still relevant, please reopen with updated information.",
       });
 
       await octokit.issues.update({
@@ -182,8 +198,6 @@ async function scanInactiveIssues(octokit, owner, repo) {
         issue_number: issue.number,
         state: "closed",
       });
-
-      console.log(`Closed issue #${issue.number}`);
     }
   }
 }
@@ -194,32 +208,63 @@ app.post("/webhook", async (req, res) => {
   const event = req.headers["x-github-event"];
   const action = req.body?.action;
 
-  // Prevent bot loops
   if (req.body?.sender?.type === "Bot") {
     return res.sendStatus(200);
   }
 
-  const installationId = req.body.installation?.id;
-  const { owner, name } = req.body.repository || {};
-
   try {
+    const installationId = req.body.installation?.id;
+    if (!installationId) return res.sendStatus(200);
+
     const octokit = await getInstallationOctokit(installationId);
 
-    // Only immediate action stays in webhook
+    if (event === "issue_comment" && action === "created") {
+      await handleMention(req.body, octokit);
+    }
+
     if (event === "issues" && action === "opened") {
       await octokit.issues.createComment({
-        owner: owner.login,
-        repo: name,
+        owner: req.body.repository.owner.login,
+        repo: req.body.repository.name,
         issue_number: req.body.issue.number,
         body:
           "Thank you for opening this issue. " +
-          "We have started monitoring on this issue.",
+          "We have started monitoring this issue.",
       });
-
-      console.log("Auto-comment posted");
     }
   } catch (err) {
     console.error("Webhook failed:", err.message);
+  }
+
+  res.sendStatus(200);
+});
+
+/* -------------------- Telegram Bot Webhook -------------------- */
+
+app.post("/telegram/webhook", async (req, res) => {
+  try {
+    const message = req.body?.message;
+    if (!message) {
+      return res.sendStatus(200);
+    }
+
+    const reply = handleTelegramCommand(message);
+
+    if (reply) {
+      await fetch(
+        `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: message.chat.id,
+            text: reply,
+          }),
+        }
+      );
+    }
+  } catch (err) {
+    console.error("Telegram webhook failed:", err.message);
   }
 
   res.sendStatus(200);
@@ -238,7 +283,6 @@ app.post("/cron/daily", async (req, res) => {
 
     for (const installation of installations) {
       const octokit = await getInstallationOctokit(installation.id);
-
       const repos = await octokit.paginate(
         octokit.apps.listReposAccessibleToInstallation,
         { per_page: 100 }
@@ -257,12 +301,6 @@ app.post("/cron/daily", async (req, res) => {
 });
 
 /* -------------------- Server -------------------- */
-
-app.get("/", (req, res) => {
-  res.send("Reporeply server running");
-});
-
-/* -------------------- Server Testing Part -------------------- */
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on http://localhost:${PORT}`);

@@ -6,3 +6,7 @@ node_modules/
 
 # GitHub App private keys
 *.pem
+
+# Reminder data & backups
+data/reminders/
+data/reminders/*
