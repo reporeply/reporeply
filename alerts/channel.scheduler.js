@@ -1,33 +1,28 @@
-import cron from "node-cron";
-import { sendChannelMessage } from "./telegram.channel.js";
-import { loadReminders } from "../reminders/reminder.service.js";
-
 // ============================================================================
 // CHANNEL SCHEDULER - Sends periodic updates to Telegram channel
 // ============================================================================
 
-console.log("[Channel Scheduler] Initialized at", new Date().toLocaleString());
+import cron from "node-cron";
+import { sendChannelMessage } from "./telegram.channel.js";
+import { loadReminders } from "../reminders/reminder.service.js";
 
 // ----------------------------------------------------------------------------
 // SYSTEM STARTUP NOTIFICATION
 // Sends a verification message when the system restarts/wakes up
-// This confirms that the bot and channel permissions are working correctly
 // ----------------------------------------------------------------------------
 sendChannelMessage(
   "*System Startup Notification*\n\n" +
   "This is a system-generated message to verify the system wakeup is working.\n\n" +
   "RepoReply channel permissions verified and system is now active."
 )
-  .then(() => console.log("[Channel Scheduler] Init message sent"))
+  .then(() => console.log("[Channel Scheduler] System wakeup message sent"))
   .catch(err => console.error("[Channel Scheduler] Init error:", err));
 
 // ----------------------------------------------------------------------------
-// PERIODIC UPDATE SCHEDULER
+// PERIODIC STATUS UPDATE SCHEDULER
 // Runs every 1 minute to send status updates to the Telegram channel
-// Shows current reminder counts and system status
 // ----------------------------------------------------------------------------
 cron.schedule("* * * * *", async () => {
-  
   try {
     // Load all reminders from the system
     const reminders = loadReminders();
@@ -38,9 +33,6 @@ cron.schedule("* * * * *", async () => {
     // Count completed reminders (already sent)
     const sent = reminders.filter(r => r.sent).length;
     
-    // Log the counts for debugging
-    console.log("[Channel Scheduler] Pending:", pending, "Sent:", sent);
-    
     // Send formatted status update to Telegram channel
     await sendChannelMessage(
       `*From Reporeply Team*\n` +
@@ -50,12 +42,12 @@ cron.schedule("* * * * *", async () => {
       `• Time: ${new Date().toLocaleDateString('en-US', { weekday: 'short' })}, ${new Date().toLocaleTimeString('en-GB', { hour12: false })}`
     );
     
-    // Confirm message was sent successfully
-    console.log("[Channel Scheduler] Update message sent");
+    // Confirm status update was sent successfully
+    console.log("[Channel Scheduler] Status update message sent");
     
   } catch (err) {
     // Log any errors that occur during the update
-    console.error("[Channel Scheduler][1-min]", err.message);
+    console.error("[Channel Scheduler] Error:", err.message);
   }
 });
 
