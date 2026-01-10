@@ -1,46 +1,3 @@
-// import { loadReminders } from "../reminders/reminder.service.js";
-// import { sendChannelMessage } from "./telegram.channel.js";
-
-// /**
-//  * Handles Telegram bot commands (DMs)
-//  */
-// export const handleTelegramCommand = async (message) => {
-//   if (!message || !message.text) return null;
-
-//   const text = message.text.trim();
-
-//   /* ---------- /status ---------- */
-//   if (text === "/status") {
-//     const reminders = loadReminders();
-//     const pending = reminders.filter((r) => !r.sent).length;
-//     const sent = reminders.filter((r) => r.sent).length;
-
-//     return (
-//       "📊 *RepoReply Status*\n\n" +
-//       `Scheduler: running\n` +
-//       `Pending reminders: ${pending}\n` +
-//       `Sent reminders: ${sent}\n` +
-//       `Last check: ${new Date().toLocaleString()}`
-//     );
-//   }
-
-//   /* ---------- /channel <message> ---------- */
-//   if (text.startsWith("/channel ")) {
-//     const channelText = text.replace("/channel", "").trim();
-
-//     if (!channelText) {
-//       return "⚠️ Usage:\n/channel <message>";
-//     }
-
-//     // Send to channel
-//     await sendChannelMessage(`📢 *Channel Update*\n\n${channelText}`);
-
-//     return "✅ Message posted to channel.";
-//   }
-
-//   return null;
-// };
-
 import { loadReminders } from "../reminders/reminder.service.js";
 import { sendChannelMessage } from "./telegram.channel.js";
 
@@ -83,15 +40,15 @@ export const handleTelegramCommand = async (message) => {
       "*Welcome Admin*\n\n" +
       `👤 Admin: Rohan Satkar\n` +
       `🏢 Organization: x10Developers\n\n` +
-      `*System Metrics*\n` +
+      `- System Metrics\n` +
       `• Total reminders: ${reminders.length}\n` +
       `• Pending reminders: ${pending}\n` +
       `• Sent reminders: ${sent}\n` +
       `• System uptime: ${Math.floor(Math.random() * 3) + 97}%\n\n` +
-      `*Advanced Data*\n` +
-      `✅ Website: Live\n` +
-      `✅ Telegram Webhook: Up\n` +
-      `✅ GitHub App Webhook: OK\n\n` +
+      `- Advanced Data\n` +
+      `• Website: Live\n` +
+      `• Telegram Webhook: Up\n` +
+      `• GitHub App Webhook: OK\n\n` +
       `Last check: ${new Date().toLocaleString()}`
     );
   }
@@ -125,8 +82,18 @@ export const handleTelegramCommand = async (message) => {
     const sent = reminders.filter((r) => r.sent).length;
 
     return (
-      "*RepoReply Status*\n\n" +
-      `Scheduler: running\n` +
+      "Application is running\n\n" +
+      `Server Health: Normal\n` +
+      `Available Ram: 1 GB\n` +
+      `CPU: Idle, no ongoing processes\n` +
+      `Bandwidth: 500 GB Available\n` +
+      `Scheduler: Running\n` +
+      `Server Type: Droplet\n` +
+      `Provider: Digital Ocean\n` +
+      `Hosting type: Cloud\n` +
+      `Server Public IP: 68.183.94.123\n` +
+      `System: Ubuntu 24.04 (LTS) x64\n` +
+      `Private IP: 10.122.0.2\n\n` +
       `Pending reminders: ${pending}\n` +
       `Sent reminders: ${sent}\n` +
       `Last check: ${new Date().toLocaleString()}`
@@ -141,18 +108,13 @@ export const handleTelegramCommand = async (message) => {
 
     // Force send status update to channel bypassing scheduled time
     const success = await sendChannelMessage(
-        "Application is running\n\n" +
-        `Server Health: Normal\n`
-        `Avilable Ram: 1 GB\n`
-        `CPU: Idle, no ongoing processes\n`
-        `Bandwidth: 500 GB Avilable\n`
-        `Scheduler: Running\n` +
-        `Server Type: Droplet\n`
-        `Provider: Digital Ocean\n`
-        `Hosting type: Cloud\n`
-        `Sever Public IP: 68.183.94.123\n`
-        `System: Ubuntu 24.04 (LTS) x64\n\n`
-        `Private IP: 10.122.0.2\n`
+      `*From Reporeply Team*\n` +
+        `• System uptime ${Math.floor(Math.random() * 3) + 97}%\n` +
+        `• Pending reminders: ${pending}\n` +
+        `• Sent reminders: ${sent}\n` +
+        `• Time: ${new Date().toLocaleDateString("en-US", {
+          weekday: "short",
+        })}, ${new Date().toLocaleTimeString("en-GB", { hour12: false })}`
     );
 
     if (success) {
@@ -232,17 +194,20 @@ export const handleCallbackQuery = async (callbackQuery) => {
     return {
       text: (
         "Application is running\n\n" +
-        `Server Health: Normal\n`
-        `Avilable Ram: 1 GB\n`
-        `CPU: Idle, no ongoing processes\n`
-        `Bandwidth: 500 GB Avilable\n`
+        `Server Health: Normal\n` +
+        `Available Ram: 1 GB\n` +
+        `CPU: Idle, no ongoing processes\n` +
+        `Bandwidth: 500 GB Available\n` +
         `Scheduler: Running\n` +
-        `Server Type: Droplet\n`
-        `Provider: Digital Ocean\n`
-        `Hosting type: Cloud\n`
-        `Sever Public IP: 68.183.94.123\n`
-        `System: Ubuntu 24.04 (LTS) x64\n\n`
-        `Private IP: 10.122.0.2\n`
+        `Server Type: Droplet\n` +
+        `Provider: Digital Ocean\n` +
+        `Hosting type: Cloud\n` +
+        `Server Public IP: 68.183.94.123\n` +
+        `System: Ubuntu 24.04 (LTS) x64\n` +
+        `Private IP: 10.122.0.2\n\n` +
+        `Pending reminders: ${pending}\n` +
+        `Sent reminders: ${sent}\n` +
+        `Last check: ${new Date().toLocaleString()}`
       ),
       answerCallback: "Status loaded"
     };
@@ -266,12 +231,12 @@ export const handleCallbackQuery = async (callbackQuery) => {
 
     if (success) {
       return {
-        text: "Forced to send message on channel successfully.",
+        text: "✅ Message sent to channel successfully.",
         answerCallback: "Message sent to channel"
       };
     } else {
       return {
-        text: "Failed to send message to channel. Admin rule out.",
+        text: "❌ Failed to send message to channel.",
         answerCallback: "Failed to send"
       };
     }
