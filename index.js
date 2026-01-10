@@ -315,20 +315,25 @@ app.listen(PORT, "0.0.0.0", async () => {
 
   // Send system startup notification to Telegram
   const { sendChannelMessage } = await import("./alerts/telegram.channel.js");
-  
+
   // First message - System startup notification
   const success1 = await sendChannelMessage(
     "*System Startup Notification*\n\n" +
       "This is a system-generated message to verify the system wakeup sequence."
   );
 
+  // Wait 2 seconds before sending second message
+  await delay(10000);
+
   // Second message - System active broadcast
-  const success2 = await sendChannelMessage("Automated check complete. System is operational & fully functional.");
+  const success2 = await sendChannelMessage(
+    "Automated check complete. System is operational & fully functional."
+  );
 
   // Log if both messages were sent successfully
   if (success1 && success2) {
     console.log("[Server] System wakeup messages sent to Telegram");
-  }else {
+  } else {
     // Send failure notification to Telegram
     await sendChannelMessage(
       "*System Startup Warning*\n\n" +
