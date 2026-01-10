@@ -47,8 +47,8 @@ sendChannelMessage("✅ RepoReply channel permissions verified")
   .then(() => console.log("[Channel Scheduler] Init message sent"))
   .catch(err => console.error("[Channel Scheduler] Init error:", err));
 
-/* Auto channel update – every 1 minute */
-cron.schedule("*/2 * * * *", async () => {
+/* Auto channel update – every 2 minute */
+cron.schedule("* * * * *", async () => {
   console.log("[Channel Scheduler] 1-min check triggered at", new Date().toLocaleString());
   
   try {
@@ -59,10 +59,10 @@ cron.schedule("*/2 * * * *", async () => {
     console.log("[Channel Scheduler] Pending:", pending, "Sent:", sent);
     
     await sendChannelMessage(
-      `⏰ *RepoReply Update*\n` +
-      `Pending reminders: ${pending}\n` +
-      `Sent reminders: ${sent}\n` +
-      `Time: ${new Date().toLocaleTimeString()}`
+      `⏰ *RepoReply System Information*\n` +
+      `• Pending reminders: ${pending}\n` +
+      `• Sent reminders: ${sent}\n` +
+      `• Time: ${new Date().toLocaleTimeString()}`
     );
     
     console.log("[Channel Scheduler] Update message sent");
