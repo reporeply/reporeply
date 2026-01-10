@@ -257,7 +257,7 @@ app.post(
       const message = req.body?.message;
       if (!message) return;
 
-      const reply = handleTelegramCommand(message);
+      const reply = await handleTelegramCommand(message);
       if (!reply) return;
 
       await fetch(
