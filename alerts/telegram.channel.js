@@ -1,68 +1,45 @@
-// const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-// const CHANNEL_ID = process.env.TELEGRAM_CHANNEL_ID;
-// const ENABLED = process.env.TELEGRAM_CHANNEL_NOTIFICATIONS === "true";
+// ============================================================================
+// TELEGRAM CHANNEL MESSAGING
+// Sends messages to a configured Telegram channel
+// ============================================================================
 
-// export async function sendChannelMessage(text) {
-//   if (!ENABLED || !BOT_TOKEN || !CHANNEL_ID) {
-//     console.warn("[Telegram Channel] Skipped (disabled or missing config)");
-//     return;
-//   }
-
-//   try {
-//     const res = await fetch(
-//       `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
-//       {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({
-//           chat_id: CHANNEL_ID,
-//           text,
-//           parse_mode: "Markdown",
-//           disable_web_page_preview: true,
-//         }),
-//       }
-//     );
-
-//     if (!res.ok) {
-//       console.error("[Telegram Channel]", await res.text());
-//     }
-//   } catch (err) {
-//     console.error("[Telegram Channel]", err.message);
-//   }
-// }
-
-
-//Claude
-
+/**
+ * Sends a message to the Telegram channel
+ * @param {string} text - The message text to send (supports Markdown formatting)
+ */
 export async function sendChannelMessage(text) {
-  // Load fresh from env each time
+  // ----------------------------------------------------------------------------
+  // Load environment variables fresh on each call
+  // This ensures we always have the latest configuration
+  // ----------------------------------------------------------------------------
   const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
   const CHANNEL_ID = process.env.TELEGRAM_CHANNEL_ID;
   const ENABLED = process.env.TELEGRAM_CHANNEL_NOTIFICATIONS === "true";
 
-  console.log("[Telegram Channel] Config:", {
-    ENABLED,
-    hasBotToken: !!BOT_TOKEN,
-    hasChannelId: !!CHANNEL_ID,
-    channelId: CHANNEL_ID
-  });
-
+  // ----------------------------------------------------------------------------
+  // Validation: Check if channel notifications are enabled
+  // ----------------------------------------------------------------------------
   if (!ENABLED) {
-    console.warn("[Telegram Channel] Skipped - TELEGRAM_CHANNEL_NOTIFICATIONS is not 'true'");
-    console.warn("[Telegram Channel] Current value:", process.env.TELEGRAM_CHANNEL_NOTIFICATIONS);
     return;
   }
 
+  // ----------------------------------------------------------------------------
+  // Validation: Check if bot token is configured
+  // ----------------------------------------------------------------------------
   if (!BOT_TOKEN) {
-    console.error("[Telegram Channel] Skipped - TELEGRAM_BOT_TOKEN is missing");
     return;
   }
 
+  // ----------------------------------------------------------------------------
+  // Validation: Check if channel ID is configured
+  // ----------------------------------------------------------------------------
   if (!CHANNEL_ID) {
-    console.error("[Telegram Channel] Skipped - TELEGRAM_CHANNEL_ID is missing");
     return;
   }
 
+  // ----------------------------------------------------------------------------
+  // Send message to Telegram channel via Bot API
+  // ----------------------------------------------------------------------------
   try {
     const res = await fetch(
       `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
@@ -80,12 +57,19 @@ export async function sendChannelMessage(text) {
 
     const data = await res.json();
 
+    // Check if message was sent successfully
     if (!res.ok) {
       console.error("[Telegram Channel] API Error:", data);
     } else {
+      // Success: Message delivered to Telegram
       console.log("[Telegram Channel] Message sent successfully");
     }
   } catch (err) {
+    // Handle network or other errors
     console.error("[Telegram Channel] Error:", err.message);
   }
 }
+
+// ============================================================================
+// End of Telegram Channel Module
+// ============================================================================
