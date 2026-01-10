@@ -1,55 +1,33 @@
 /**
- * File: alerts/telegram.channel.js
+ * File: alerts/telegram.commands.js
  *
  * Purpose:
- * - Sends broadcast messages to a Telegram channel
- *
- * Notes:
- * - Uses native fetch (Node 18+)
- * - Controlled via TELEGRAM_CHANNEL_NOTIFICATIONS
+ * - Handle Telegram bot commands (DMs)
  */
 
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const CHANNEL_ID = process.env.TELEGRAM_CHANNEL_ID;
-const ENABLED = process.env.TELEGRAM_CHANNEL_NOTIFICATIONS === "true";
+import { loadReminders } from "../reminders/reminder.service.js";
 
-export async function sendChannelMessage(text) {
-  // Guard rails (no silent failure)
-  if (!ENABLED) {
-    console.log("[Telegram Channel] Skipped (notifications disabled)");
-    return;
-  }
+/**
+ * Named export (IMPORTANT)
+ * Must match:
+ *   import { handleTelegramCommand } from "./alerts/telegram.commands.js";
+ */
+export const handleTelegramCommand = (message) => {
+  if (!message || !message.text) return null;
 
-  if (!BOT_TOKEN || !CHANNEL_ID) {
-    console.warn(
-      "[Telegram Channel] Missing config",
-      { BOT_TOKEN: !!BOT_TOKEN, CHANNEL_ID }
-    );
-    return;
-  }
+  const text = message.text.trim();
 
-  try {
-    const res = await fetch(
-      `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: CHANNEL_ID,
-          text,
-          parse_mode: "Markdown",
-          disable_web_page_preview: true,
-        }),
-      }
-    );
+  if (text !== "/status") return null;
 
-    if (!res.ok) {
-      console.error(
-        "[Telegram Channel] Send failed:",
-        await res.text()
-      );
-    }
-  } catch (err) {
-    console.error("[Telegram Channel] Error:", err.message);
-  }
-}
+  const reminders = loadReminders();
+  const pending = reminders.filter((r) => !r.sent).length;
+  const sent = reminders.filter((r) => r.sent).length;
+
+  return (
+    "📊 *RepoReply Status*\n\n" +
+    `Scheduler: running\n` +
+    `Pending reminders: ${pending}\n` +
+    `Sent reminders: ${sent}\n` +
+    `Last check: ${new Date().toLocaleString()}`
+  );
+};
