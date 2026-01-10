@@ -38,8 +38,7 @@ cron.schedule("* * * * *", async () => {
     // Count completed reminders (already sent)
     const sent = reminders.filter(r => r.sent).length;
     
-    // Send formatted status update to Telegram channel
-    await sendChannelMessage(
+const success = await sendChannelMessage(
       `*From Reporeply Team*\n` +
       `• System uptime 100%\n` +
       `• Pending reminders: ${pending}\n` +
@@ -47,8 +46,9 @@ cron.schedule("* * * * *", async () => {
       `• Time: ${new Date().toLocaleDateString('en-US', { weekday: 'short' })}, ${new Date().toLocaleTimeString('en-GB', { hour12: false })}`
     );
     
-    // Confirm status update was sent successfully
-    console.log("[Channel Scheduler] Status update message sent");
+    if (success) {
+      console.log("[Channel Scheduler] Status update message sent");
+    }
     
   } catch (err) {
     // Log any errors that occur during the update
