@@ -73,11 +73,14 @@ export const handleTelegramCommand = async (message) => {
     };
   }
 
-  /* ---------- /admin - Send JSON data ---------- */
+  /* ---------- /admin - Send latest reminder data ---------- */
   if (text === "/admin") {
     const reminders = loadReminders();
     
-    // Return complete data as JSON
+    // Get only the latest reminder
+    const latestReminder = reminders.length > 0 ? reminders[reminders.length - 1] : null;
+    
+    // Return latest reminder data as JSON
     const adminData = {
       timestamp: new Date().toISOString(),
       scheduler_status: "running",
@@ -86,7 +89,7 @@ export const handleTelegramCommand = async (message) => {
         pending: reminders.filter((r) => !r.sent).length,
         sent: reminders.filter((r) => r.sent).length
       },
-      data: reminders
+      latest_reminder: latestReminder
     };
 
     return "```json\n" + JSON.stringify(adminData, null, 2) + "\n```";
@@ -142,9 +145,12 @@ export const handleTelegramCommand = async (message) => {
 export const handleCallbackQuery = async (callbackQuery) => {
   const data = callbackQuery.data;
 
-  // Admin button - return JSON data
+  // Admin button - return latest reminder JSON data
   if (data === "admin") {
     const reminders = loadReminders();
+    
+    // Get only the latest reminder
+    const latestReminder = reminders.length > 0 ? reminders[reminders.length - 1] : null;
     
     const adminData = {
       timestamp: new Date().toISOString(),
@@ -154,7 +160,7 @@ export const handleCallbackQuery = async (callbackQuery) => {
         pending: reminders.filter((r) => !r.sent).length,
         sent: reminders.filter((r) => r.sent).length
       },
-      data: reminders
+      latest_reminder: latestReminder
     };
 
     return {
