@@ -325,7 +325,7 @@ app.listen(PORT, "0.0.0.0", async () => {
   );
 
   // Second message - System active broadcast
-  const success2 = await sendChannelMessage("• System is now active.");
+  const success2 = await sendChannelMessage("Automated check complete. System is operational & fullu functional.");
 
   // Log if both messages were sent successfully
   if (success1 && success2) {
