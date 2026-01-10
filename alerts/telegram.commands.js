@@ -141,7 +141,7 @@ export const handleTelegramCommand = async (message) => {
 
     // Force send status update to channel bypassing scheduled time
     const success = await sendChannelMessage(
-      `*Admin In Control*\n` +
+      `*Admin Rule Bypass*\n` +
         `• System uptime ${Math.floor(Math.random() * 3) + 97}%\n` +
         `• Pending reminders: ${pending}\n` +
         `• Sent reminders: ${sent}\n` +
@@ -151,9 +151,9 @@ export const handleTelegramCommand = async (message) => {
     );
 
     if (success) {
-      return "✅ Message sent to channel successfully.";
+      return "Admin acess granted. Forcing mseesage on channel.";
     } else {
-      return "❌ Failed to send message to channel.";
+      return "Failed to send message to channel.";
     }
   }
 
