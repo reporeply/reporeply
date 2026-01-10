@@ -277,7 +277,7 @@ app.post(
     }
   }
 );
-``
+``;
 /* -------------------- Daily Cron Endpoint -------------------- */
 
 app.post("/cron/daily", async (req, res) => {
@@ -314,16 +314,21 @@ app.post("/cron/daily", async (req, res) => {
 
 app.listen(PORT, "0.0.0.0", async () => {
   console.log(`Server running on http://localhost:${PORT}`);
-  
+
   // Send system startup notification to Telegram
   const { sendChannelMessage } = await import("./alerts/telegram.channel.js");
-  const success = await sendChannelMessage(
-    "*System Startup Notification*\n\n" +
-      "This is a system-generated message to verify the system wakeup is working.\n\n" +
-      "• System is now active."
-  );
   
-  if (success) {
-    console.log("[Server] System wakeup message sent to Telegram");
+  // First message - System startup notification
+  const success1 = await sendChannelMessage(
+    "*System Startup Notification*\n\n" +
+      "This is a system-generated message to verify the system wakeup is working."
+  );
+
+  // Second message - System active broadcast
+  const success2 = await sendChannelMessage("• System is now active.");
+
+  // Log if both messages were sent successfully
+  if (success1 && success2) {
+    console.log("[Server] System wakeup messages sent to Telegram");
   }
 });
