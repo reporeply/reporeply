@@ -48,7 +48,7 @@ sendChannelMessage("✅ RepoReply channel permissions verified")
   .catch(err => console.error("[Channel Scheduler] Init error:", err));
 
 /* Auto channel update – every 1 minute */
-cron.schedule("* * * * *", async () => {
+cron.schedule("*/2 * * * *", async () => {
   console.log("[Channel Scheduler] 1-min check triggered at", new Date().toLocaleString());
   
   try {
