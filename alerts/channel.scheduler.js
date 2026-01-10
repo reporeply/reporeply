@@ -6,16 +6,11 @@ import { loadReminders } from "../reminders/reminder.service.js";
 
 // Send wakeup message when server restarts
 (async () => {
-  const success = await sendChannelMessage(
+  await sendChannelMessage(
     "*System Startup Notification*\n\n" +
       "This is a system-generated message to verify the system wakeup is working.\n\n" +
       "RepoReply channel permissions verified and system is now active."
   );
-
-  // Log only if message was sent successfully
-  if (success) {
-    console.log("[Channel Scheduler] System wakeup message sent");
-  }
 })();
 
 /* -------------------- Periodic Status Update Scheduler -------------------- */
