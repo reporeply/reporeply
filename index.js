@@ -310,6 +310,20 @@ app.post("/cron/daily", async (req, res) => {
 
 /* -------------------- Server -------------------- */
 
-app.listen(PORT, "0.0.0.0", () => {
+/* -------------------- Server -------------------- */
+
+app.listen(PORT, "0.0.0.0", async () => {
   console.log(`Server running on http://localhost:${PORT}`);
+  
+  // Send system startup notification to Telegram
+  const { sendChannelMessage } = await import("./alerts/telegram.channel.js");
+  const success = await sendChannelMessage(
+    "*System Startup Notification*\n\n" +
+      "This is a system-generated message to verify the system wakeup is working.\n\n" +
+      "RepoReply channel permissions verified and system is now active."
+  );
+  
+  if (success) {
+    console.log("[Server] System wakeup message sent to Telegram");
+  }
 });
