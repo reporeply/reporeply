@@ -25,13 +25,11 @@ import path from "path";
 import jwt from "jsonwebtoken";
 import { Octokit } from "@octokit/rest";
 import { fileURLToPath } from "url";
-import { handleTelegramCommand } from "./alerts/telegram.commands.js";
+import { handleTelegramCommand } from "../alerts/telegram.commands.js";
 import { handleMention } from "./webhooks/mention.handler.js";
 import { logReminderIntegrity } from "./reminders/reminder.service.js";
-import "./reminders/channel.scheduler.js";
-import "./reminders/reminder.scheduler.js";
 import "./alerts/channel.scheduler.js";
-
+import "./reminders/reminder.scheduler.js";
 
 /* -------------------- Environment Checks -------------------- */
 if (!process.env.TELEGRAM_BOT_TOKEN) {
