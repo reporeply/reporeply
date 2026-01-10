@@ -320,7 +320,7 @@ app.listen(PORT, "0.0.0.0", async () => {
   const success = await sendChannelMessage(
     "*System Startup Notification*\n\n" +
       "This is a system-generated message to verify the system wakeup is working.\n\n" +
-      "RepoReply channel permissions verified and system is now active."
+      "• System is now active."
   );
   
   if (success) {
