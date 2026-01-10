@@ -30,6 +30,7 @@ import { handleMention } from "./webhooks/mention.handler.js";
 import { logReminderIntegrity } from "./reminders/reminder.service.js";
 import "./alerts/channel.scheduler.js";
 import "./reminders/reminder.scheduler.js";
+import "./alerts/group.scheduler.js";
 
 /* -------------------- Environment Checks -------------------- */
 if (!process.env.TELEGRAM_BOT_TOKEN) {
