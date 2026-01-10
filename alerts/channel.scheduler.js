@@ -49,7 +49,6 @@ sendChannelMessage("✅ RepoReply channel permissions verified")
 
 /* Auto channel update – every 2 minute */
 cron.schedule("* * * * *", async () => {
-  console.log("[Channel Scheduler] 1-min check triggered at", new Date().toLocaleString());
   
   try {
     const reminders = loadReminders();
