@@ -141,7 +141,7 @@ export const handleTelegramCommand = async (message) => {
 
     // Force send status update to channel bypassing scheduled time
     const success = await sendChannelMessage(
-      `*From Reporeply Team*\n` +
+      `*Admin In Control*\n` +
         `• System uptime ${Math.floor(Math.random() * 3) + 97}%\n` +
         `• Pending reminders: ${pending}\n` +
         `• Sent reminders: ${sent}\n` +
@@ -179,15 +179,15 @@ export const handleCallbackQuery = async (callbackQuery) => {
         "*Welcome Admin*\n\n" +
         `👤 Admin: Rohan Satkar\n` +
         `🏢 Organization: x10Developers\n\n` +
-        `*System Metrics*\n` +
+        `- System Metrics\n` +
         `• Total reminders: ${reminders.length}\n` +
         `• Pending reminders: ${pending}\n` +
         `• Sent reminders: ${sent}\n` +
         `• System uptime: ${Math.floor(Math.random() * 3) + 97}%\n\n` +
-        `*Advanced Data*\n` +
-        `✅ Website: Live\n` +
-        `✅ Telegram Webhook: Up\n` +
-        `✅ GitHub App Webhook: OK\n\n` +
+        `- Advanced Data\n` +
+        `• Website: Live\n` +
+        `• Telegram Webhook: Up\n` +
+        `• GitHub App Webhook: OK\n\n` +
         `Last check: ${new Date().toLocaleString()}`
       ),
       answerCallback: "Admin panel loaded"
