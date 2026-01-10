@@ -4,8 +4,8 @@ import { loadReminders } from "../reminders/reminder.service.js";
 
 console.log("[Channel Scheduler] Initialized");
 
-/* Hourly update */
-cron.schedule("0 * * * *", async () => {
+/* Auto channel update – every 10 minutes */
+cron.schedule("*/10 * * * *", async () => {
   try {
     const reminders = loadReminders();
     const pending = reminders.filter(r => !r.sent).length;
