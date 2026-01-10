@@ -80,15 +80,19 @@ export const handleTelegramCommand = async (message) => {
     const sent = reminders.filter((r) => r.sent).length;
 
     return (
-      "*Welcome Admin*\n\n" +
+      "- Welcome Admin\n\n" +
       `👤 Admin: Rohan Satkar\n` +
       `🏢 Organization: x10Developers\n\n` +
-      `*System Metrics*\n` +
+      `📧 Mail: rohan7kar@gmail.com\n\n` +
+      `🧑🏻‍💻 Github Username: Coderxrohan\n\n` +
+      `⚙️ Acess: Super Admin\n\n` +
+      `🛂 Controls: Full Server Acess\n\n` +
+      `- System Metrics\n` +
       `• Total reminders: ${reminders.length}\n` +
       `• Pending reminders: ${pending}\n` +
       `• Sent reminders: ${sent}\n` +
       `• System uptime: ${Math.floor(Math.random() * 3) + 97}%\n\n` +
-      `*Advanced Data*\n` +
+      `- Advanced Data\n` +
       `• Website: Live\n` +
       `• Telegram Webhook: Up\n` +
       `• GitHub App Webhook: OK\n\n` +
@@ -226,11 +230,18 @@ export const handleCallbackQuery = async (callbackQuery) => {
 
     return {
       text: (
-        "*RepoReply Status*\n\n" +
-        `Scheduler: running\n` +
-        `Pending reminders: ${pending}\n` +
-        `Sent reminders: ${sent}\n` +
-        `Last check: ${new Date().toLocaleString()}`
+        "Application is running\n\n" +
+        `Server Health: Normal\n`
+        `Avilable Ram: 1 GB\n`
+        `CPU: Idle, no ongoing processes\n`
+        `Bandwidth: 500 GB Avilable\n`
+        `Scheduler: Running\n` +
+        `Server Type: Droplet\n`
+        `Provider: Digital Ocean\n`
+        `Hosting type: Cloud\n`
+        `Sever Public IP: 68.183.94.123\n`
+        `System: Ubuntu 24.04 (LTS) x64\n\n`
+        `Private IP: 10.122.0.2\n`
       ),
       answerCallback: "Status loaded"
     };
