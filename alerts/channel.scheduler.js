@@ -59,11 +59,11 @@ cron.schedule("* * * * *", async () => {
     console.log("[Channel Scheduler] Pending:", pending, "Sent:", sent);
     
     await sendChannelMessage(
-      `*From RepoReply Team*\n` +
+      `*From Reporeply Team*\n` +
       `• System uptime 100%\n` +
       `• Pending reminders: ${pending}\n` +
       `• Sent reminders: ${sent}\n` +
-      `• Time: ${new Date().toLocaleTimeString()}`
+      `• Time: ${new Date().toLocaleTimeString('en-GB', { hour12: false })}`
     );
     
     console.log("[Channel Scheduler] Update message sent");
