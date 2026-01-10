@@ -19,7 +19,6 @@
 import dotenv from "dotenv";
 dotenv.config(); // MUST be first
 
-import fetch from "node-fetch";
 import express from "express";
 import fs from "fs";
 import path from "path";
