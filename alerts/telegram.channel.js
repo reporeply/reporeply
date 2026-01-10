@@ -3,7 +3,10 @@ const CHANNEL_ID = process.env.TELEGRAM_CHANNEL_ID;
 const ENABLED = process.env.TELEGRAM_CHANNEL_NOTIFICATIONS === "true";
 
 export async function sendChannelMessage(text) {
-  if (!ENABLED || !BOT_TOKEN || !CHANNEL_ID) return;
+  if (!ENABLED || !BOT_TOKEN || !CHANNEL_ID) {
+    console.warn("[Telegram Channel] Skipped (disabled or missing config)");
+    return;
+  }
 
   try {
     const res = await fetch(
