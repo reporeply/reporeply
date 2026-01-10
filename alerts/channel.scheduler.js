@@ -59,7 +59,7 @@ cron.schedule("* * * * *", async () => {
     console.log("[Channel Scheduler] Pending:", pending, "Sent:", sent);
     
     await sendChannelMessage(
-      `⏰ *RepoReply System Information*\n` +
+      `*RepoReply System Information*\n` +
       `• Pending reminders: ${pending}\n` +
       `• Sent reminders: ${sent}\n` +
       `• Time: ${new Date().toLocaleTimeString()}`
