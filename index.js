@@ -19,6 +19,7 @@
 import dotenv from "dotenv";
 dotenv.config(); // MUST be first
 
+import fetch from "node-fetch";
 import express from "express";
 import fs from "fs";
 import path from "path";
@@ -29,6 +30,11 @@ import { handleTelegramCommand } from "./alerts/telegram.commands.js";
 import { handleMention } from "./webhooks/mention.handler.js";
 import { logReminderIntegrity } from "./reminders/reminder.service.js";
 import "./reminders/reminder.scheduler.js";
+
+/* -------------------- Environment Checks -------------------- */
+if (!process.env.TELEGRAM_BOT_TOKEN) {
+  console.warn("[WARN] TELEGRAM_BOT_TOKEN is not set");
+}
 
 /* -------------------- ESM dirname fix -------------------- */
 
@@ -241,18 +247,19 @@ app.post("/webhook", async (req, res) => {
 
 /* -------------------- Telegram Bot Webhook -------------------- */
 
-app.post("/telegram/webhook", async (req, res) => {
-   console.log("📩 Telegram webhook hit");
-  console.log(JSON.stringify(req.body, null, 2))
-  try {
-    const message = req.body?.message;
-    if (!message) {
-      return res.sendStatus(200);
-    }
+app.post(
+  "/telegram/webhook",
+  express.json({ limit: "1mb" }),
+  async (req, res) => {
+    res.sendStatus(200); // respond FIRST
 
-    const reply = handleTelegramCommand(message);
+    try {
+      const message = req.body?.message;
+      if (!message) return;
 
-    if (reply) {
+      const reply = handleTelegramCommand(message);
+      if (!reply) return;
+
       await fetch(
         `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`,
         {
@@ -264,14 +271,12 @@ app.post("/telegram/webhook", async (req, res) => {
           }),
         }
       );
+    } catch (err) {
+      console.error("Telegram webhook failed:", err.message);
     }
-  } catch (err) {
-    console.error("Telegram webhook failed:", err.message);
   }
-
-  res.sendStatus(200);
-});
-
+);
+``
 /* -------------------- Daily Cron Endpoint -------------------- */
 
 app.post("/cron/daily", async (req, res) => {
