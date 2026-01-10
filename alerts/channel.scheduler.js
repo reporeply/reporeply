@@ -63,7 +63,7 @@ cron.schedule("* * * * *", async () => {
       `• System uptime 100%\n` +
       `• Pending reminders: ${pending}\n` +
       `• Sent reminders: ${sent}\n` +
-      `• Time: ${new Date().toLocaleTimeString('en-GB', { hour12: false })}`
+      `• Time: ${new Date().toLocaleDateString('en-US', { weekday: 'short' })}, ${new Date().toLocaleTimeString('en-GB', { hour12: false })}`
     );
     
     console.log("[Channel Scheduler] Update message sent");
