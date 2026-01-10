@@ -15,8 +15,8 @@ import { loadReminders } from "../reminders/reminder.service.js";
 
 /* -------------------- Periodic Status Update Scheduler -------------------- */
 
-// Runs every 1 minute to send status updates
-cron.schedule("* * * * *", async () => {
+// Runs every 15 minute to send status updates
+cron.schedule("*/15 * * * *", async () => {
   try {
     // Load all reminders from the system
     const reminders = loadReminders();
