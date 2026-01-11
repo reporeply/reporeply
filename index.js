@@ -19,6 +19,11 @@
 import dotenv from "dotenv";
 dotenv.config(); // MUST be first
 
+//new
+
+import adminRoutes from "./routes/admin.routes.js";
+
+//end
 import express from "express";
 import fs from "fs";
 import path from "path";
@@ -56,7 +61,7 @@ const MS_IN_DAY = 24 * 60 * 60 * 1000;
 
 const app = express();
 app.use(express.json());
-
+app.use("/admin", adminRoutes);
 const PORT = process.env.PORT || 3000;
 
 /* -------------------- Health Check -------------------- */
