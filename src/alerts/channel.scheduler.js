@@ -25,7 +25,10 @@ import { loadReminders } from "../reminders/reminder.service.js";
 cron.schedule("*/30 * * * *", async () => {
   try {
     // Load all reminders from the system
-    const reminders = loadReminders();
+    const reminders = await prisma.reminders.findMany({
+  orderBy: { created_at: "desc" },
+  take: 5,
+});
 
     // Count pending reminders (not yet sent)
     const pending = reminders.filter((r) => !r.sent).length;

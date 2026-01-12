@@ -3,7 +3,10 @@
  * Matches the minimum reminder constraints and reduces resource usage.
  */
 cron.schedule("*/2 * * * *", async () => {
-  const reminders = loadReminders();
+  const reminders = await prisma.reminders.findMany({
+  orderBy: { created_at: "desc" },
+  take: 5,
+});
   if (reminders.length === 0) return;
 
   // rest of your logic

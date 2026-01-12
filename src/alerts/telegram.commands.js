@@ -34,7 +34,10 @@ export const handleTelegramCommand = async (message) => {
 
   /* ---------- /admin - Display admin metrics ---------- */
   if (text === "/admin") {
-    const reminders = loadReminders();
+    const reminders = await prisma.reminders.findMany({
+  orderBy: { created_at: "desc" },
+  take: 5,
+});
     const pending = reminders.filter((r) => !r.sent).length;
     const sent = reminders.filter((r) => r.sent).length;
 
@@ -57,7 +60,10 @@ export const handleTelegramCommand = async (message) => {
 
   /* ---------- /json - Send latest reminder JSON ---------- */
   if (text === "/json") {
-    const reminders = loadReminders();
+    const reminders = await prisma.reminders.findMany({
+  orderBy: { created_at: "desc" },
+  take: 5,
+});
     
     // Get only the latest reminder
     const latestReminder = reminders.length > 0 ? reminders[reminders.length - 1] : null;
@@ -79,7 +85,10 @@ export const handleTelegramCommand = async (message) => {
 
   /* ---------- /status - Send status message ---------- */
   if (text === "/status") {
-    const reminders = loadReminders();
+    const reminders = await prisma.reminders.findMany({
+  orderBy: { created_at: "desc" },
+  take: 5,
+});
     const pending = reminders.filter((r) => !r.sent).length;
     const sent = reminders.filter((r) => r.sent).length;
 
@@ -104,7 +113,10 @@ export const handleTelegramCommand = async (message) => {
 
   /* ---------- /channel - Force send message to channel ---------- */
   if (text === "/channel") {
-    const reminders = loadReminders();
+    const reminders = await prisma.reminders.findMany({
+  orderBy: { created_at: "desc" },
+  take: 5,
+});
     const pending = reminders.filter((r) => !r.sent).length;
     const sent = reminders.filter((r) => r.sent).length;
 
@@ -139,7 +151,10 @@ export const handleCallbackQuery = async (callbackQuery) => {
 
   // Admin button - display admin metrics
   if (data === "admin") {
-    const reminders = loadReminders();
+    const reminders = await prisma.reminders.findMany({
+  orderBy: { created_at: "desc" },
+  take: 5,
+});
     const pending = reminders.filter((r) => !r.sent).length;
     const sent = reminders.filter((r) => r.sent).length;
 
@@ -165,7 +180,10 @@ export const handleCallbackQuery = async (callbackQuery) => {
 
   // JSON button - return latest reminder JSON data
   if (data === "json") {
-    const reminders = loadReminders();
+    const reminders = await prisma.reminders.findMany({
+  orderBy: { created_at: "desc" },
+  take: 5,
+});
     
     // Get only the latest reminder
     const latestReminder = reminders.length > 0 ? reminders[reminders.length - 1] : null;
@@ -189,7 +207,10 @@ export const handleCallbackQuery = async (callbackQuery) => {
 
   // Status button - return status message
   if (data === "status") {
-    const reminders = loadReminders();
+    const reminders = await prisma.reminders.findMany({
+  orderBy: { created_at: "desc" },
+  take: 5,
+});
     const pending = reminders.filter((r) => !r.sent).length;
     const sent = reminders.filter((r) => r.sent).length;
 
@@ -217,7 +238,10 @@ export const handleCallbackQuery = async (callbackQuery) => {
 
   // Channel button - force send to channel
   if (data === "channel") {
-    const reminders = loadReminders();
+    const reminders = await prisma.reminders.findMany({
+  orderBy: { created_at: "desc" },
+  take: 5,
+});
     const pending = reminders.filter((r) => !r.sent).length;
     const sent = reminders.filter((r) => r.sent).length;
 
