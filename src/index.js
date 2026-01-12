@@ -19,6 +19,11 @@
 import dotenv from "dotenv";
 dotenv.config(); // MUST be first
 
+import cors from "cors";
+
+import adminRoutes from "./routes/admin.routes.js";
+
+//end
 import express from "express";
 import fs from "fs";
 import path from "path";
@@ -31,6 +36,9 @@ import { logReminderIntegrity } from "./reminders/reminder.service.js";
 import "./alerts/channel.scheduler.js";
 import "./reminders/reminder.scheduler.js";
 import "./alerts/group.scheduler.js";
+
+const app = express();
+const PORT = process.env.PORT || 3000;
 
 /* -------------------- Environment Checks -------------------- */
 if (!process.env.TELEGRAM_BOT_TOKEN) {
@@ -54,46 +62,31 @@ const MS_IN_DAY = 24 * 60 * 60 * 1000;
 
 /* -------------------- App Setup -------------------- */
 
-const app = express();
+// const app = express();
+// app.use(express.json());
+// app.use("/admin", adminRoutes);
+// const PORT = process.env.PORT || 3000;
+
+app.use(cors({
+  origin: "https://reporeply-frontend.vercel.app",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
+}));
+
 app.use(express.json());
 
-const PORT = process.env.PORT || 3000;
+
+app.use(express.json());
+app.use("/admin", adminRoutes);
+
+
 
 /* -------------------- Health Check -------------------- */
 
 app.get("/", (req, res) => {
   res.status(200).send("RepoReply server is running");
 });
-
-/* -------------------- Static Pages -------------------- */
-
-app.get("/privacy-policy", (req, res) =>
-  res.sendFile(path.join(__dirname, "nginx/privacy-policy.html"))
-);
-
-app.get("/contact-us", (req, res) =>
-  res.sendFile(path.join(__dirname, "nginx/contact-us.html"))
-);
-
-app.get("/sitemap.xml", (req, res) =>
-  res.sendFile(path.join(__dirname, "nginx/sitemap.xml"))
-);
-
-app.get("/coderxrohan", (req, res) =>
-  res.sendFile(path.join(__dirname, "nginx/coderxrohan.html"))
-);
-
-app.get("/rohansatkar", (req, res) =>
-  res.sendFile(path.join(__dirname, "nginx/rohansatkar.html"))
-);
-
-app.get("/robots.txt", (req, res) =>
-  res.sendFile(path.join(__dirname, "nginx/robots.txt"))
-);
-
-app.get("/favicon.png", (req, res) =>
-  res.sendFile(path.join(__dirname, "nginx/favicon.png"))
-);
 
 /* -------------------- Auth Helpers -------------------- */
 
