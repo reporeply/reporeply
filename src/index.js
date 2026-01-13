@@ -8,9 +8,9 @@ import { setupMiddleware } from "../config/middleware.js";
 import { setupRoutes } from "../config/routes.js";
 import { setupErrorHandlers } from "../config/errorHandlers.js";
 import { startServer } from "../config/server.js";
+import gitlabRoutes from "./src/routes/auth/gitlab.routes.js";
 
-//Work when gitalb intergreation
-//import gitlabRoutes from "./src/routes/auth/gitlab.routes.js";
+app.use("/gitlab", gitlabRoutes);
 
 // Import schedulers (auto-run on import)
 import "./alerts/channel.scheduler.js";
