@@ -23,6 +23,7 @@ import { prisma } from "../lib/prisma.js";
 
 // Runs every 30 minutes to send status updates
 cron.schedule("*/30 * * * *", async () => {
+  const now = new Date();
   try {
     const now = new Date(); // FIX: Define 'now' before using it
 
