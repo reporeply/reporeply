@@ -14,39 +14,44 @@ export function setupRoutes(app) {
     res.status(200).send("RepoReply server is running");
   });
 
-  // GitHub webhook
-  app.post("/webhook", asyncHandler(async (req, res) => {
-    const event = req.headers["x-github-event"];
-    const action = req.body?.action;
+  /* -------------------- GitHub webhook -------------------- */
 
-    if (req.body?.sender?.type === "Bot") {
-      return res.sendStatus(200);
-    }
+  app.post(
+    "/webhook",
+    asyncHandler(async (req, res) => {
+      const event = req.headers["x-github-event"];
+      const action = req.body?.action;
 
-    const installationId = req.body.installation?.id;
-    if (!installationId) return res.sendStatus(200);
+      if (req.body?.sender?.type === "Bot") {
+        return res.sendStatus(200);
+      }
 
-    const octokit = await getInstallationOctokit(installationId);
+      const installationId = req.body.installation?.id;
+      if (!installationId) return res.sendStatus(200);
 
-    if (event === "issue_comment" && action === "created") {
-      await handleMention(req.body, octokit);
-    }
+      const octokit = await getInstallationOctokit(installationId);
 
-    if (event === "issues" && action === "opened") {
-      await octokit.issues.createComment({
-        owner: req.body.repository.owner.login,
-        repo: req.body.repository.name,
-        issue_number: req.body.issue.number,
-        body:
-          "Thank you for opening this issue. " +
-          "We have started monitoring this issue.",
-      });
-    }
+      if (event === "issue_comment" && action === "created") {
+        await handleMention(req.body, octokit);
+      }
 
-    res.sendStatus(200);
-  }));
+      if (event === "issues" && action === "opened") {
+        await octokit.issues.createComment({
+          owner: req.body.repository.owner.login,
+          repo: req.body.repository.name,
+          issue_number: req.body.issue.number,
+          body:
+            "Thank you for opening this issue. " +
+            "We have started monitoring this issue.",
+        });
+      }
 
-  // Telegram webhook
+      res.sendStatus(200);
+    })
+  );
+
+  /* -------------------- Telegram webhook -------------------- */
+
   app.post("/telegram/webhook", async (req, res) => {
     res.sendStatus(200);
 
@@ -73,9 +78,13 @@ export function setupRoutes(app) {
     }
   });
 
-  // Daily cron
-  app.post("/cron/daily", asyncHandler(async (req, res) => {
-    await handleDailyCron();
-    res.send("Daily inactivity scan completed");
-  }));
+  /* -------------------- Daily Cron -------------------- */
+
+  app.post(
+    "/cron/daily",
+    asyncHandler(async (req, res) => {
+      await handleDailyCron();
+      res.send("Daily inactivity scan completed");
+    })
+  );
 }
