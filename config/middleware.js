@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import adminRoutes from "../routes/admin.routes.js";
+import adminRoutes from "../src/routes/admin.routes.js";
 
 export function setupMiddleware(app) {
   app.use(cors({
