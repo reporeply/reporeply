@@ -1,8 +1,3 @@
-
-// ================================================================
-// FILE 2: src/utils/errors.js
-// ================================================================
-
 export class AppError extends Error {
   constructor(message, statusCode = 500, isOperational = true) {
     super(message);

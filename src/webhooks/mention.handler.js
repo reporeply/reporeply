@@ -1,7 +1,3 @@
-// ================================================================
-// FILE 4: src/webhooks/mention.handler.js
-// ================================================================
-
 import { parseReminder } from "../reminders/reminder.parser.js";
 import {
   createReminder,
@@ -229,8 +225,7 @@ export async function handleMention(payload, octokit) {
       repo: payload.repository.name,
       issue_number: payload.issue.number,
       body:
-        "✅ Reminder scheduled successfully.\n\n" +
-        `You will be notified here on **${parsed.remindAt.toLocaleString()}**.`,
+        `Got it. I will remind you on **${parsed.remindAt.toLocaleString()}**.`,
     });
 
   } catch (error) {

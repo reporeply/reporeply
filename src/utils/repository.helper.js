@@ -1,8 +1,3 @@
-
-// ================================================================
-// FILE 3: src/utils/repository.helper.js
-// ================================================================
-
 import { prisma } from "../lib/prisma.js";
 import { safeDbOperation } from "./errors.js";
 

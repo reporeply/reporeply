@@ -1,4 +1,4 @@
-// Improved Prisma Schema with better tracking and constraints
+//Prisma Version 1.0
 
 datasource db {
   provider = "postgresql"

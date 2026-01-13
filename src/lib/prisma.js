@@ -1,8 +1,3 @@
-
-// ================================================================
-// FILE 1: src/lib/prisma.js
-// ================================================================
-
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient({
