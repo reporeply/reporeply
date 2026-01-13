@@ -3,7 +3,7 @@ export async function startServer(app, port) {
     console.log(`Server running on http://localhost:${port}`);
 
     // Send system startup notification to Telegram
-    const { sendChannelMessage } = await import("../alerts/telegram.channel.js");
+    const { sendChannelMessage } = await import("../src/alerts/telegram.channel.js");
 
     const success1 = await sendChannelMessage(
       "*System Startup Notification*\n\n" +
