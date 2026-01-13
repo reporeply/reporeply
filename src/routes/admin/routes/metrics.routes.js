@@ -1,7 +1,7 @@
 import express from "express";
 import { getAdminMetrics } from "../../../lib/adminMetrics.js";
 
-console.log("✅ metrics.routes.js loaded");
+console.log("[Routes]  ✅ Metrics route is working");
 
 const router = express.Router();
 

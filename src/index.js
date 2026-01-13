@@ -9,6 +9,9 @@ import { setupRoutes } from "../config/routes.js";
 import { setupErrorHandlers } from "../config/errorHandlers.js";
 import { startServer } from "../config/server.js";
 
+//Work when gitalb intergreation
+//import gitlabRoutes from "./src/routes/auth/gitlab.routes.js";
+
 // Import schedulers (auto-run on import)
 import "./alerts/channel.scheduler.js";
 import "./reminders/reminder.scheduler.js";

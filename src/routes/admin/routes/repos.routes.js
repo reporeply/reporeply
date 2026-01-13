@@ -3,7 +3,7 @@ import { prisma } from "../../../lib/prisma.js";
 
 const router = express.Router();
 
-console.log("✅ repos.routes.js loaded");
+console.log("[Routes]  ✅ repos.routes.js loaded");
 
 // GET /admin/repos - List all repositories
 router.get("/", async (req, res) => {

@@ -144,7 +144,7 @@ export const handleTelegramCommand = async (message) => {
         `• System uptime ${Math.floor(Math.random() * 3) + 97}%\n` +
         `• Pending reminders: ${pending}\n` +
         `• Sent reminders: ${sent}\n` +
-        `• Time: ${formatIndiaTime()}}`
+        `• Time: ${formatIndiaTime()}`
     );
 
     if (success) {
