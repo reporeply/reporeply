@@ -4,7 +4,7 @@ dotenv.config();
 import express from "express";
 import { ensurePrismaConnection } from "./lib/prisma.js";
 import { logReminderIntegrity } from "./reminders/reminder.service.js";
-import { setupMiddleware } from "./config/middleware.js";
+import { setupMiddleware } from "..middleware.js";
 import { setupRoutes } from "./config/routes.js";
 import { setupErrorHandlers } from "./config/errorHandlers.js";
 import { startServer } from "./config/server.js";
