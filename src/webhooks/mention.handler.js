@@ -81,7 +81,7 @@ async function sendErrorComment(octokit, payload, message) {
       body: message,
     });
   } catch (err) {
-    console.error('[GitHub] Failed to post error comment:', err.message);
+    console.error("[GitHub] Failed to post error comment:", err.message);
   }
 }
 
@@ -89,15 +89,26 @@ async function sendErrorComment(octokit, payload, message) {
  * Handle RepoReply commands from issue comments
  */
 export async function handleMention(payload, octokit) {
-  console.log(`\n[Mention] Processing: ${payload.repository.full_name}#${payload.issue.number}`);
-  
+  console.log(
+    `\n[Mention] Processing: ${payload.repository.full_name}#${payload.issue.number}`
+  );
+
   const body = payload.comment?.body;
   if (!body) {
     return;
   }
 
   const normalized = body.toLowerCase().trim();
-  if (!normalized.startsWith("/reporeply")) {
+  const allowedPrefixes = [
+    "/reporeply",
+    "@reporeply",
+    "reporeply",
+    ".reporeply",
+    ",reporeply",
+    "#reporeply",
+  ];
+
+  if (!allowedPrefixes.some((prefix) => normalized.startsWith(prefix))) {
     return;
   }
 
@@ -113,8 +124,8 @@ export async function handleMention(payload, octokit) {
         octokit,
         payload,
         "❌ Reminder not created.\n\n" +
-        "Only the issue author, repository collaborators, organization members, " +
-        "or prior contributors are permitted to create reminders for this issue."
+          "Only the issue author, repository collaborators, organization members, " +
+          "or prior contributors are permitted to create reminders for this issue."
       );
       return;
     }
@@ -134,8 +145,8 @@ export async function handleMention(payload, octokit) {
             octokit,
             payload,
             "⏱️ Reminder request limited.\n\n" +
-            "A reminder was created recently for this issue. " +
-            "Please wait at least 10 minutes before creating another reminder."
+              "A reminder was created recently for this issue. " +
+              "Please wait at least 10 minutes before creating another reminder."
           );
           return;
         }
@@ -159,11 +170,11 @@ export async function handleMention(payload, octokit) {
     if (!parsed) {
       throw new ValidationError(
         "Unable to create reminder.\n\n" +
-        "The reminder format could not be understood.\n\n" +
-        "Examples:\n" +
-        "- /reporeply notify me tomorrow at 5pm\n" +
-        "- /reporeply remind me in 10 minutes\n" +
-        "- /reporeply alert me next Monday"
+          "The reminder format could not be understood.\n\n" +
+          "Examples:\n" +
+          "- /reporeply notify me tomorrow at 5pm\n" +
+          "- /reporeply remind me in 10 minutes\n" +
+          "- /reporeply alert me next Monday"
       );
     }
 
@@ -178,8 +189,8 @@ export async function handleMention(payload, octokit) {
     if (remindAtTime < minAllowedTime) {
       throw new ValidationError(
         "⏰ Reminder could not be scheduled.\n\n" +
-        `Reminders must be scheduled at least ${DISPLAY_MINUTES} minutes in advance.\n\n` +
-        "Please choose a later time and try again."
+          `Reminders must be scheduled at least ${DISPLAY_MINUTES} minutes in advance.\n\n` +
+          "Please choose a later time and try again."
       );
     }
 
@@ -191,8 +202,8 @@ export async function handleMention(payload, octokit) {
     if (remindAtTime > maxAllowedTime) {
       throw new ValidationError(
         "📅 Reminder could not be scheduled.\n\n" +
-        "Reminders can only be created for up to 7 days in advance.\n\n" +
-        "Please choose a date within the next week and try again."
+          "Reminders can only be created for up to 7 days in advance.\n\n" +
+          "Please choose a date within the next week and try again."
       );
     }
 
@@ -224,12 +235,10 @@ export async function handleMention(payload, octokit) {
       owner: payload.repository.owner.login,
       repo: payload.repository.name,
       issue_number: payload.issue.number,
-      body:
-        `Got it. I will remind you on **${parsed.remindAt.toLocaleString()}**.`,
+      body: `Got it. I will remind you on **${parsed.remindAt.toLocaleString()}**.`,
     });
-
   } catch (error) {
-    console.error('[Mention] ❌ Error:', {
+    console.error("[Mention] ❌ Error:", {
       name: error.name,
       message: error.message,
       code: error.code,
@@ -240,12 +249,13 @@ export async function handleMention(payload, octokit) {
 
     if (error instanceof ValidationError) {
       userMessage += error.message;
-    } else if (error.name === 'DatabaseError') {
+    } else if (error.name === "DatabaseError") {
       userMessage += "Database error occurred. Please try again in a moment.";
-    } else if (error.code === 'P2002') {
+    } else if (error.code === "P2002") {
       userMessage += "A reminder already exists with these details.";
     } else {
-      userMessage += "An unexpected error occurred. Please contact support if this persists.";
+      userMessage +=
+        "An unexpected error occurred. Please contact support if this persists.";
     }
 
     await sendErrorComment(octokit, payload, userMessage);
