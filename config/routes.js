@@ -1,7 +1,7 @@
 import { asyncHandler } from "../src/utils/errors.js";
 import { getInstallationOctokit } from "../services/github.service.js";
 import { handleMention } from "../src/webhooks/mention.handler.js";
-import { handleTelegramCommand } from "../alerts/telegram.commands.js";
+import { handleTelegramCommand } from "../src/alerts/telegram.commands.js";
 import { handleDailyCron } from "../services/cron.service.js";
 
 export function setupRoutes(app) {
