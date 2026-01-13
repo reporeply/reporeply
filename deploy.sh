@@ -3,44 +3,36 @@ set -e
 
 APP_DIR="/root/reporeply"
 APP_NAME="reporeply"
-ENTRY_FILE="src/index.js"
+ENTRY_FILE="index.js"
 PORT=3000
 
-echo "🚀 Starting deployment..."
+echo "Initializing System..."
 
 cd "$APP_DIR"
 
-echo "📥 Pulling latest code..."
+echo "Downloading latest version..."
 git fetch origin
 git reset --hard origin/main
 
-echo "📦 Installing production dependencies..."
-npm install --production
+echo "Installing filesystem codebase ..."
+npm install
 
-echo "🔁 Reloading Nginx..."
+echo "Generating Prisma client..."
+npx prisma generate
+
+echo "Reloading Nginx..."
 nginx -t
 systemctl reload nginx
 
-npx prisma generate
-
-echo "♻️ Restarting Node app with PM2..."
-
-if pm2 list | grep -q "$APP_NAME"; then
-  pm2 restart "$APP_NAME" --update-env
-else
-  pm2 start "$ENTRY_FILE" --name "$APP_NAME"
-fi
-
+echo "Rebooting app with PM2..."
+pm2 stop "$APP_NAME" || true
+pm2 start "$ENTRY_FILE" --name "$APP_NAME" --update-env
 pm2 save
 
-echo "⏳ Waiting for app to boot..."
-sleep 3
+echo "Waiting for system reboot..."
+sleep 5
 
-echo "🩺 Health check (local)..."
+echo "Checking Routes Health in local..."
 curl -f "http://127.0.0.1:$PORT/health"
 
-echo "✅ Deployment finished successfully"
-
-pm2 delete reporeply
-pm2 start src/index.js --name reporeply
-pm2 save
+echo "System Update finished successfully"
