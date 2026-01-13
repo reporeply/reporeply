@@ -71,12 +71,18 @@ export async function hasRecentReminder({
 /* -------------------- Startup Log -------------------- */
 
 export async function logReminderIntegrity() {
-  const total = await prisma.reminders.count();
-  const pending = await prisma.reminders.count({
-    where: { status: "pending" },
-  });
+  try {
+    const total = await prisma.reminders.count();
+    const pending = await prisma.reminders.count({
+      where: { status: "pending" },
+    });
 
-  console.log(
-    `[Startup] Reminder DB loaded. Total: ${total}, Pending: ${pending}`
-  );
+    console.log(
+      `[Startup] Reminder DB loaded. Total: ${total}, Pending: ${pending}`
+    );
+  } catch (err) {
+    console.warn(
+      "[Startup] Reminder integrity skipped (Prisma not ready yet)"
+    );
+  }
 }
