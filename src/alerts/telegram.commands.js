@@ -3,16 +3,25 @@ import { prisma } from "../lib/prisma.js";
 import { sendChannelMessage } from "./telegram.channel.js";
 
 /* -------------------- Helper: Safe Prisma Query -------------------- */
+
+function formatIndiaTime() {
+  return new Date().toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    hour12: true,
+  });
+}
+/* -------------------- Helper: Safe Prisma Query -------------------- */
+
 async function safeGetReminders() {
   try {
     // Ensure connection before querying
     await prisma.$connect();
-    
+
     const reminders = await prisma.reminders.findMany({
       orderBy: { created_at: "desc" },
       take: 100, // Increased to get better counts
     });
-    
+
     return reminders;
   } catch (error) {
     console.error("[Prisma Error]", error.message);
@@ -38,18 +47,19 @@ export const handleTelegramCommand = async (message) => {
         inline_keyboard: [
           [
             { text: "🔧 Admin", callback_data: "admin" },
-            { text: "📋 JSON", callback_data: "json" }
+            { text: "📋 JSON", callback_data: "json" },
           ],
           [
             { text: "✅ Status", callback_data: "status" },
-            { text: "📢 Channel", callback_data: "channel" }
-          ]
-        ]
-      }
+            { text: "📢 Channel", callback_data: "channel" },
+          ],
+        ],
+      },
     };
   }
 
   /* ---------- /admin - Display admin metrics ---------- */
+
   if (text === "/admin") {
     const reminders = await safeGetReminders();
     const pending = reminders.filter((r) => r.status === "pending").length;
@@ -68,33 +78,35 @@ export const handleTelegramCommand = async (message) => {
       `• Website: Live\n` +
       `• Telegram Webhook: Up\n` +
       `• GitHub App Webhook: OK\n\n` +
-      `Last check: ${new Date().toLocaleString()}`
+      `Last check: ${formatIndiaTime()}`
     );
   }
 
   /* ---------- /json - Send latest reminder JSON ---------- */
+
   if (text === "/json") {
     const reminders = await safeGetReminders();
-    
+
     // Get only the latest reminder
     const latestReminder = reminders.length > 0 ? reminders[0] : null;
-    
+
     // Return latest reminder data as JSON
     const adminData = {
-      timestamp: new Date().toISOString(),
+      timestamp: formatIndiaTime(),
       scheduler_status: "running",
       reminders: {
         total: reminders.length,
         pending: reminders.filter((r) => r.status === "pending").length,
-        sent: reminders.filter((r) => r.status === "sent").length
+        sent: reminders.filter((r) => r.status === "sent").length,
       },
-      latest_reminder: latestReminder
+      latest_reminder: latestReminder,
     };
 
     return "```json\n" + JSON.stringify(adminData, null, 2) + "\n```";
   }
 
   /* ---------- /status - Send status message ---------- */
+
   if (text === "/status") {
     const reminders = await safeGetReminders();
     const pending = reminders.filter((r) => r.status === "pending").length;
@@ -115,11 +127,12 @@ export const handleTelegramCommand = async (message) => {
       `Private IP: 10.122.0.2\n\n` +
       `Pending reminders: ${pending}\n` +
       `Sent reminders: ${sent}\n` +
-      `Last check: ${new Date().toLocaleString()}`
+      `Last check: ${formatIndiaTime()}`
     );
   }
 
   /* ---------- /channel - Force send message to channel ---------- */
+
   if (text === "/channel") {
     const reminders = await safeGetReminders();
     const pending = reminders.filter((r) => r.status === "pending").length;
@@ -131,9 +144,7 @@ export const handleTelegramCommand = async (message) => {
         `• System uptime ${Math.floor(Math.random() * 3) + 97}%\n` +
         `• Pending reminders: ${pending}\n` +
         `• Sent reminders: ${sent}\n` +
-        `• Time: ${new Date().toLocaleDateString("en-US", {
-          weekday: "short",
-        })}, ${new Date().toLocaleTimeString("en-GB", { hour12: false })}`
+        `• Time: ${formatIndiaTime()}}`
     );
 
     if (success) {
@@ -161,7 +172,7 @@ export const handleCallbackQuery = async (callbackQuery) => {
     const sent = reminders.filter((r) => r.status === "sent").length;
 
     return {
-      text: (
+      text:
         "*Welcome Admin*\n\n" +
         `👤 Admin: Rohan Satkar\n` +
         `🏢 Organization: x10Developers\n\n` +
@@ -174,33 +185,32 @@ export const handleCallbackQuery = async (callbackQuery) => {
         `• Website: Live\n` +
         `• Telegram Webhook: Up\n` +
         `• GitHub App Webhook: OK\n\n` +
-        `Last check: ${new Date().toLocaleString()}`
-      ),
-      answerCallback: "Admin panel loaded"
+        `Last check: ${formatIndiaTime()}`,
+      answerCallback: "Admin panel loaded",
     };
   }
 
   // JSON button - return latest reminder JSON data
   if (data === "json") {
     const reminders = await safeGetReminders();
-    
+
     // Get only the latest reminder
     const latestReminder = reminders.length > 0 ? reminders[0] : null;
-    
+
     const adminData = {
-      timestamp: new Date().toISOString(),
+      timestamp: formatIndiaTime(),
       scheduler_status: "running",
       reminders: {
         total: reminders.length,
         pending: reminders.filter((r) => r.status === "pending").length,
-        sent: reminders.filter((r) => r.status === "sent").length
+        sent: reminders.filter((r) => r.status === "sent").length,
       },
-      latest_reminder: latestReminder
+      latest_reminder: latestReminder,
     };
 
     return {
       text: "```json\n" + JSON.stringify(adminData, null, 2) + "\n```",
-      answerCallback: "JSON data loaded"
+      answerCallback: "JSON data loaded",
     };
   }
 
@@ -211,7 +221,7 @@ export const handleCallbackQuery = async (callbackQuery) => {
     const sent = reminders.filter((r) => r.status === "sent").length;
 
     return {
-      text: (
+      text:
         "Application is running\n\n" +
         `Server Health: Normal\n` +
         `Available Ram: 1 GB\n` +
@@ -226,9 +236,8 @@ export const handleCallbackQuery = async (callbackQuery) => {
         `Private IP: 10.122.0.2\n\n` +
         `Pending reminders: ${pending}\n` +
         `Sent reminders: ${sent}\n` +
-        `Last check: ${new Date().toLocaleString()}`
-      ),
-      answerCallback: "Status loaded"
+        `Last check: ${formatIndiaTime()}`,
+      answerCallback: "Status loaded",
     };
   }
 
@@ -243,20 +252,18 @@ export const handleCallbackQuery = async (callbackQuery) => {
         `• System uptime ${Math.floor(Math.random() * 3) + 97}%\n` +
         `• Pending reminders: ${pending}\n` +
         `• Sent reminders: ${sent}\n` +
-        `• Time: ${new Date().toLocaleDateString("en-US", {
-          weekday: "short",
-        })}, ${new Date().toLocaleTimeString("en-GB", { hour12: false })}`
+        `• Time: ${formatIndiaTime()}`
     );
 
     if (success) {
       return {
         text: "✅ Message sent to channel successfully.",
-        answerCallback: "Message sent to channel"
+        answerCallback: "Message sent to channel",
       };
     } else {
       return {
         text: "❌ Failed to send message to channel.",
-        answerCallback: "Failed to send"
+        answerCallback: "Failed to send",
       };
     }
   }
