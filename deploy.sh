@@ -3,7 +3,7 @@ set -e
 
 APP_DIR="/root/reporeply"
 APP_NAME="reporeply"
-ENTRY_FILE="index.js"
+ENTRY_FILE="src/index.js"
 PORT=3000
 
 echo "Initializing System..."

@@ -30,7 +30,7 @@ async function getGitHubClient(repoFullName) {
 
   // Get installation token
   const appOctokit = new Octokit({ auth: token });
-  
+
   // Get installation ID for this repository
   const repo = await prisma.repositories.findUnique({
     where: { id: repoFullName },
@@ -38,12 +38,15 @@ async function getGitHubClient(repoFullName) {
   });
 
   if (!repo?.installation_id) {
-    throw new Error(`PERMANENT: No installation_id for repository ${repoFullName}`);
+    throw new Error(
+      `PERMANENT: No installation_id for repository ${repoFullName}`
+    );
   }
 
-  const { data: installation } = await appOctokit.apps.createInstallationAccessToken({
-    installation_id: repo.installation_id,
-  });
+  const { data: installation } =
+    await appOctokit.apps.createInstallationAccessToken({
+      installation_id: repo.installation_id,
+    });
 
   return new Octokit({ auth: installation.token });
 }
@@ -69,7 +72,7 @@ async function postGitHubComment({ repo, issueNumber, message }) {
     if (err.status === 404 || err.status === 410) {
       throw new Error(`PERMANENT: Issue not found or deleted (${err.status})`);
     }
-    
+
     if (err.status === 401 || err.status === 403) {
       throw new Error(`PERMANENT: Authentication failed (${err.status})`);
     }
