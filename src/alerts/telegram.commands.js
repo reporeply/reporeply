@@ -1,7 +1,24 @@
 // import { loadReminders } from "../reminders/reminder.service.js";
 import { prisma } from "../lib/prisma.js";
-
 import { sendChannelMessage } from "./telegram.channel.js";
+
+/* -------------------- Helper: Safe Prisma Query -------------------- */
+async function safeGetReminders() {
+  try {
+    // Ensure connection before querying
+    await prisma.$connect();
+    
+    const reminders = await prisma.reminders.findMany({
+      orderBy: { created_at: "desc" },
+      take: 100, // Increased to get better counts
+    });
+    
+    return reminders;
+  } catch (error) {
+    console.error("[Prisma Error]", error.message);
+    return [];
+  }
+}
 
 /* -------------------- Telegram Bot Command Handler -------------------- */
 
@@ -34,12 +51,9 @@ export const handleTelegramCommand = async (message) => {
 
   /* ---------- /admin - Display admin metrics ---------- */
   if (text === "/admin") {
-    const reminders = await prisma.reminders.findMany({
-  orderBy: { created_at: "desc" },
-  take: 5,
-});
-    const pending = reminders.filter((r) => !r.sent).length;
-    const sent = reminders.filter((r) => r.sent).length;
+    const reminders = await safeGetReminders();
+    const pending = reminders.filter((r) => r.status === "pending").length;
+    const sent = reminders.filter((r) => r.status === "sent").length;
 
     return (
       "*Welcome Admin*\n\n" +
@@ -60,13 +74,10 @@ export const handleTelegramCommand = async (message) => {
 
   /* ---------- /json - Send latest reminder JSON ---------- */
   if (text === "/json") {
-    const reminders = await prisma.reminders.findMany({
-  orderBy: { created_at: "desc" },
-  take: 5,
-});
+    const reminders = await safeGetReminders();
     
     // Get only the latest reminder
-    const latestReminder = reminders.length > 0 ? reminders[reminders.length - 1] : null;
+    const latestReminder = reminders.length > 0 ? reminders[0] : null;
     
     // Return latest reminder data as JSON
     const adminData = {
@@ -74,8 +85,8 @@ export const handleTelegramCommand = async (message) => {
       scheduler_status: "running",
       reminders: {
         total: reminders.length,
-        pending: reminders.filter((r) => !r.sent).length,
-        sent: reminders.filter((r) => r.sent).length
+        pending: reminders.filter((r) => r.status === "pending").length,
+        sent: reminders.filter((r) => r.status === "sent").length
       },
       latest_reminder: latestReminder
     };
@@ -85,12 +96,9 @@ export const handleTelegramCommand = async (message) => {
 
   /* ---------- /status - Send status message ---------- */
   if (text === "/status") {
-    const reminders = await prisma.reminders.findMany({
-  orderBy: { created_at: "desc" },
-  take: 5,
-});
-    const pending = reminders.filter((r) => !r.sent).length;
-    const sent = reminders.filter((r) => r.sent).length;
+    const reminders = await safeGetReminders();
+    const pending = reminders.filter((r) => r.status === "pending").length;
+    const sent = reminders.filter((r) => r.status === "sent").length;
 
     return (
       "Application is running\n\n" +
@@ -113,12 +121,9 @@ export const handleTelegramCommand = async (message) => {
 
   /* ---------- /channel - Force send message to channel ---------- */
   if (text === "/channel") {
-    const reminders = await prisma.reminders.findMany({
-  orderBy: { created_at: "desc" },
-  take: 5,
-});
-    const pending = reminders.filter((r) => !r.sent).length;
-    const sent = reminders.filter((r) => r.sent).length;
+    const reminders = await safeGetReminders();
+    const pending = reminders.filter((r) => r.status === "pending").length;
+    const sent = reminders.filter((r) => r.status === "sent").length;
 
     // Force send status update to channel bypassing scheduled time
     const success = await sendChannelMessage(
@@ -151,12 +156,9 @@ export const handleCallbackQuery = async (callbackQuery) => {
 
   // Admin button - display admin metrics
   if (data === "admin") {
-    const reminders = await prisma.reminders.findMany({
-  orderBy: { created_at: "desc" },
-  take: 5,
-});
-    const pending = reminders.filter((r) => !r.sent).length;
-    const sent = reminders.filter((r) => r.sent).length;
+    const reminders = await safeGetReminders();
+    const pending = reminders.filter((r) => r.status === "pending").length;
+    const sent = reminders.filter((r) => r.status === "sent").length;
 
     return {
       text: (
@@ -180,21 +182,18 @@ export const handleCallbackQuery = async (callbackQuery) => {
 
   // JSON button - return latest reminder JSON data
   if (data === "json") {
-    const reminders = await prisma.reminders.findMany({
-  orderBy: { created_at: "desc" },
-  take: 5,
-});
+    const reminders = await safeGetReminders();
     
     // Get only the latest reminder
-    const latestReminder = reminders.length > 0 ? reminders[reminders.length - 1] : null;
+    const latestReminder = reminders.length > 0 ? reminders[0] : null;
     
     const adminData = {
       timestamp: new Date().toISOString(),
       scheduler_status: "running",
       reminders: {
         total: reminders.length,
-        pending: reminders.filter((r) => !r.sent).length,
-        sent: reminders.filter((r) => r.sent).length
+        pending: reminders.filter((r) => r.status === "pending").length,
+        sent: reminders.filter((r) => r.status === "sent").length
       },
       latest_reminder: latestReminder
     };
@@ -207,12 +206,9 @@ export const handleCallbackQuery = async (callbackQuery) => {
 
   // Status button - return status message
   if (data === "status") {
-    const reminders = await prisma.reminders.findMany({
-  orderBy: { created_at: "desc" },
-  take: 5,
-});
-    const pending = reminders.filter((r) => !r.sent).length;
-    const sent = reminders.filter((r) => r.sent).length;
+    const reminders = await safeGetReminders();
+    const pending = reminders.filter((r) => r.status === "pending").length;
+    const sent = reminders.filter((r) => r.status === "sent").length;
 
     return {
       text: (
@@ -238,12 +234,9 @@ export const handleCallbackQuery = async (callbackQuery) => {
 
   // Channel button - force send to channel
   if (data === "channel") {
-    const reminders = await prisma.reminders.findMany({
-  orderBy: { created_at: "desc" },
-  take: 5,
-});
-    const pending = reminders.filter((r) => !r.sent).length;
-    const sent = reminders.filter((r) => r.sent).length;
+    const reminders = await safeGetReminders();
+    const pending = reminders.filter((r) => r.status === "pending").length;
+    const sent = reminders.filter((r) => r.status === "sent").length;
 
     const success = await sendChannelMessage(
       `*From Reporeply Team*\n` +
