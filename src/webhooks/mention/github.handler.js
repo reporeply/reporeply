@@ -15,14 +15,14 @@ import {
 } from "./validation.js";
 
 /**
- * Handle RepoReply commands from GitHub issue comments
+ * Handle RepoReply commands from GitLab issue comments
  */
-export async function handleGitHubMention(payload, octokit) {
+export async function handleGitLabMention(payload, accessToken) {
   console.log(
-    `\n[GitHub Mention] Processing: ${payload.repository.full_name}#${payload.issue.number}`
+    `\n[GitLab Mention] Processing: ${payload.project.path_with_namespace}#${payload.object_attributes.iid}`
   );
 
-  const body = payload.comment?.body;
+  const body = payload.object_attributes?.note;
   if (!body) return;
 
   // Check if this is a valid command
@@ -34,15 +34,14 @@ export async function handleGitHubMention(payload, octokit) {
 
   try {
     // Permission Check
-    const allowed = await checkGitHubPermissions(payload, octokit);
+    const allowed = await checkGitLabPermissions(payload, accessToken);
 
     if (!allowed) {
-      await sendGitHubErrorComment(
-        octokit,
+      await sendGitLabErrorComment(
         payload,
         "❌ Reminder not created.\n\n" +
-          "Only the issue author, repository collaborators, organization members, " +
-          "or prior contributors are permitted to create reminders for this issue."
+          "Only the issue author, project members, or contributors are permitted to create reminders for this issue.",
+        accessToken
       );
       return;
     }
@@ -53,21 +52,26 @@ export async function handleGitHubMention(payload, octokit) {
     // Validate reminder (includes rate limiting check)
     const parsed = await validateReminder({
       commandText,
-      repo_id: payload.repository.full_name,
-      issue_number: payload.issue.number,
+      repo_id: payload.project.path_with_namespace,
+      issue_number: payload.object_attributes.iid,
       skipRateLimit: isAdmin,
     });
 
-    // Ensure Repository Exists
-    await ensureRepositoryExists(payload);
+    // Ensure Repository Exists (GitLab format)
+    await ensureRepositoryExists({
+      repository: {
+        full_name: payload.project.path_with_namespace,
+        owner: { login: payload.project.namespace },
+      },
+    });
 
     // Save Reminder with Retry
     const reminderData = {
-      repo_id: payload.repository.full_name,
-      issue_number: payload.issue.number,
-      message: `🔔 Reminder for @${payload.sender.login}`,
+      repo_id: payload.project.path_with_namespace,
+      issue_number: payload.object_attributes.iid,
+      message: `🔔 Reminder for @${payload.user.username}`,
       scheduled_at: parsed.remindAt,
-      created_by: payload.sender.login,
+      created_by: payload.user.username,
     };
 
     const reminder = await withRetry(
@@ -76,16 +80,23 @@ export async function handleGitHubMention(payload, octokit) {
       1000
     );
 
-    console.log(`[GitHub Mention] ✅ Reminder created: ${reminder.id}`);
+    console.log(`[GitLab Mention] ✅ Reminder created: ${reminder.id}`);
 
-    // Send confirmation comment
-    await sendGitHubComment(
-      octokit,
+    // Send confirmation comment with ISO format and relative time
+    const reminderDate = new Date(parsed.remindAt);
+    const now = new Date();
+    const minutesUntil = Math.round((reminderDate - now) / 60000);
+
+    await sendGitLabComment(
       payload,
-      `Got it. I will remind you on **${parsed.remindAt.toLocaleString()}**.`
+      `Got it. I will remind you in **${minutesUntil} minutes** (at **${reminderDate
+        .toISOString()
+        .replace("T", " ")
+        .slice(0, 19)} UTC**).`,
+      accessToken
     );
   } catch (error) {
-    console.error("[GitHub Mention] ❌ Error:", {
+    console.error("[GitLab Mention] ❌ Error:", {
       name: error.name,
       message: error.message,
     });
@@ -103,6 +114,6 @@ export async function handleGitHubMention(payload, octokit) {
         "An unexpected error occurred. Please contact support if this persists.";
     }
 
-    await sendGitHubErrorComment(octokit, payload, userMessage);
+    await sendGitLabErrorComment(payload, userMessage, accessToken);
   }
 }
