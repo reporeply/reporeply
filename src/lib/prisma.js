@@ -27,7 +27,7 @@ async function ensurePrismaConnection() {
       // Wait a bit more to ensure engine is fully ready
       await new Promise(resolve => setTimeout(resolve, 500));
       isConnected = true;
-      console.log('[Prisma] ✅ Database connected and ready');
+      console.log('[Prisma]  ✅ Database connected and ready');
     } catch (error) {
       console.error('[Prisma] ❌ Connection failed:', error.message);
       connectionPromise = null; // Reset on failure
