@@ -6,6 +6,7 @@
  * - null on failure
  */
 import * as chrono from "chrono-node";
+
 export function parseReminder(text) {
   if (!text || typeof text !== "string") return null;
 
@@ -22,7 +23,8 @@ export function parseReminder(text) {
 
   /* -------------------- Time Extraction -------------------- */
 
-  const date = chrono.parseDate(normalized, new Date(), {
+  const now = new Date();
+  const date = chrono.parseDate(normalized, now, {
     forwardDate: true, // always future dates
   });
 
@@ -34,6 +36,11 @@ export function parseReminder(text) {
 
   // Must be a valid future date
   if (isNaN(date.getTime())) {
+    return null;
+  }
+
+  // Ensure the date is actually in the future (at least 1 second from now)
+  if (date.getTime() <= Date.now()) {
     return null;
   }
 
