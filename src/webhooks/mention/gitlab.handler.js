@@ -85,7 +85,10 @@ export async function handleGitLabMention(payload, accessToken) {
     // Send confirmation comment
     await sendGitLabComment(
       payload,
-      `Got it. I will remind you on **${parsed.remindAt.toLocaleString()}**.`,
+      `Got it. I will remind you on **${parsed.remindAt.toLocaleString(
+        "en-IN",
+        { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" }
+      )}**.`,
       accessToken
     );
   } catch (error) {

@@ -39,7 +39,6 @@ export function extractCommandText(body) {
     .replace(/^\/reporeply\s+admin/i, "")
     .replace(/^\/reporeply/i, "")
     .replace(/^@reporeply/i, "")
-    .replace(/^reporeply/i, "")
     .replace(/^\.reporeply/i, "")
     .replace(/^,reporeply/i, "")
     .replace(/^#reporeply/i, "")

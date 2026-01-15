@@ -82,7 +82,10 @@ export async function handleGitHubMention(payload, octokit) {
     await sendGitHubComment(
       octokit,
       payload,
-      `Got it. I will remind you on **${parsed.remindAt.toLocaleString()}**.`
+      `Got it. I will remind you on **${parsed.remindAt.toLocaleString(
+        "en-IN",
+        { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" }
+      )}**.`
     );
   } catch (error) {
     console.error("[GitHub Mention] ❌ Error:", {
