@@ -5,6 +5,7 @@
  * - Changed to GitHub App authentication
  * - Added proper JWT token generation with file-based private key
  * - Fixed installation_id retrieval from database
+ * - Fixed BigInt serialization in audit logs
  * - Better error handling
  */
 
@@ -19,14 +20,18 @@ import path from "path";
 /* GitHub App Authentication                     */
 /* --------------------------------------------- */
 async function getGitHubClient(repoFullName) {
-  // ✅ Get installation_id from database FIRST
+  // Get installation_id from database FIRST
   const repo = await prisma.repositories.findUnique({
     where: { id: repoFullName },
     select: { installation_id: true },
   });
 
-  console.log(`[DEBUG] Repo:`, repo);
-  console.log(`[DEBUG] installation_id:`, repo?.installation_id);
+  console.log(`[Scheduler] Repo lookup:`, {
+    repo: repoFullName,
+    installation_id: repo?.installation_id
+      ? repo.installation_id.toString()
+      : "null",
+  });
 
   if (!repo?.installation_id) {
     throw new Error(
@@ -34,11 +39,7 @@ async function getGitHubClient(repoFullName) {
     );
   }
 
-  console.log(
-    `[Scheduler] Using installation_id: ${repo.installation_id} for ${repoFullName}`
-  );
-
-  // ✅ Read private key from file
+  // Read private key from file
   let privateKey;
 
   if (process.env.GITHUB_PRIVATE_KEY_PATH) {
@@ -73,10 +74,15 @@ async function getGitHubClient(repoFullName) {
   // Get installation token
   const appOctokit = new Octokit({ auth: token });
 
+  // Convert BigInt to Number for API call
+  const installationId = Number(repo.installation_id);
+
   const { data: installation } =
     await appOctokit.apps.createInstallationAccessToken({
-      installation_id: parseInt(repo.installation_id, 10), // ✅ Force to integer
+      installation_id: installationId,
     });
+
+  console.log(`[Scheduler] ✅ Got installation token for ${repoFullName}`);
 
   return new Octokit({ auth: installation.token });
 }
@@ -257,13 +263,14 @@ async function runScheduler() {
         },
       });
 
+      // FIX: Convert all values to safe JSON types
       await prisma.audit_logs.create({
         data: {
           repo_id: reminder.repo_id,
           action: "REMINDER_SENT",
           meta: {
             reminderId: reminder.id,
-            issueNumber: reminder.issue_number,
+            issueNumber: Number(reminder.issue_number), // Ensure it's a number
           },
         },
       });
@@ -286,21 +293,22 @@ async function runScheduler() {
         data: {
           status: isDead ? "dead" : "failed",
           retry_count: nextRetry,
-          error: String(err),
+          error: String(err).substring(0, 500), // Limit error length
           scheduled_at: nextScheduledAt || reminder.scheduled_at,
           last_retry_at: new Date(),
           updated_at: new Date(),
         },
       });
 
+      // FIX: Ensure all meta values are JSON-safe (no BigInt)
       await prisma.audit_logs.create({
         data: {
           repo_id: reminder.repo_id,
           action: isDead ? "REMINDER_DEAD" : "REMINDER_FAILED",
           meta: {
             reminderId: reminder.id,
-            retry: nextRetry,
-            error: String(err),
+            retry: Number(nextRetry), // Ensure it's a number
+            error: String(err).substring(0, 500), // Limit error length
             nextRetryIn: isDead ? null : `${delayMinutes} minutes`,
           },
         },
@@ -339,7 +347,7 @@ async function runScheduler() {
 /* Entrypoint                                    */
 /* --------------------------------------------- */
 
-// ✅ Add startup delay to avoid race conditions
+// Add startup delay to avoid race conditions
 console.log("[Scheduler] Waiting 5 seconds before first run...");
 
 setTimeout(() => {
