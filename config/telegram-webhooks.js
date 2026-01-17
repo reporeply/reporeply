@@ -81,7 +81,7 @@ export function setupTelegramWebhooks(app) {
 
   /* -------------------- Webhook Setup Endpoint (run once) -------------------- */
   app.post("/admin/setup-webhooks", async (req, res) => {
-    if (req.headers["x-admin-secret"] !== process.env.WEBHOOK_SECRET) {
+    if (req.headers["X-Webhook-Secret"] !== process.env.WEBHOOK_SECRET) {
       return res.sendStatus(403);
     }
     try {
