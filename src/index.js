@@ -2,18 +2,18 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
-import { prisma } from "./lib/prisma.js";
-import { logReminderIntegrity } from "./reminders/reminder.service.js";
-import { setupMiddleware } from "../config/middleware.js";
-import { setupRoutes } from "../config/routes.js";
-import { setupErrorHandlers } from "../config/errorHandlers.js";
-import { startServer } from "../config/server.js";
+import { prisma } from "./core/database/prisma.client.js";
+import { logReminderIntegrity } from "./features/reminders/reminder.service.js";
+import { setupMiddleware } from "../config/middleware.config.js";
+import { setupRoutes } from "../config/routes.config.js";
+import { setupErrorHandlers } from "../config/error-handlers.config.js";
+import { startServer } from "../config/server.config.js";
 
 // Import the new bot system (adjust path based on your structure)
-import bots from "../connectors/telegram/index.js";
+import bots from "./features/integrations/telegram/telegram.service.js";
 
 // Import reminder scheduler (keep your existing reminder logic)
-import "./reminders/reminder.scheduler.js";
+import "./features/reminders/scheduler/scheduler.service.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
