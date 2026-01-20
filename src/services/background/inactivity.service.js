@@ -78,13 +78,3 @@ export async function scanInactiveIssues(octokit, owner, repo) {
     }
   }
 }
-
-export async function scheduleAutoClose(scheduleData) {
-  console.log('[InactivityService] Scheduled auto-close:', {
-    issue: scheduleData.issueNumber,
-    repo: scheduleData.repositoryFullName,
-    closeAt: scheduleData.closeAt,
-    reason: scheduleData.reason,
-    inactivityDays: scheduleData.inactivityDays,
-  });
-}
