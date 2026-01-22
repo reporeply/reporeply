@@ -10,6 +10,7 @@
 
 import { parseReminder } from "../../reminders/parser/reminder.parser.js";
 import { ValidationError } from "../../../core/utils/errors.utils.js";
+import { prisma } from "../../../core/database/prisma.client.js";
 
 /**
  * Check for recent reminders (rate limiting)
