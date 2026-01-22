@@ -1,7 +1,15 @@
-import { prisma } from '../src/core/database/prisma.client.js';
+/**
+ * Migrate Existing Installation Data
+ * Populates installations and installation_repos tables from existing repositories
+ * 
+ * @file migrate-existing-data.js
+ * @location ~/reporeply/testing/migrate-existing-data.js
+ */
+
+import { prisma } from "../src/core/database/prisma.client.js";
 
 async function migrateExistingData() {
-  console.log('🔄 Migrating existing installation data...\n');
+  console.log("🔄 Migrating existing installation data...\n");
 
   try {
     // Get all repositories with installation_ids
@@ -21,8 +29,8 @@ async function migrateExistingData() {
 
     // Group by installation_id
     const installationMap = new Map();
-    
-    repos.forEach(repo => {
+
+    repos.forEach((repo) => {
       const instId = repo.installation_id.toString();
       if (!installationMap.has(instId)) {
         installationMap.set(instId, []);
@@ -30,12 +38,13 @@ async function migrateExistingData() {
       installationMap.get(instId).push(repo);
     });
 
-    // Create installations
+    // Create installations and installation_repos
     for (const [installationId, repoList] of installationMap) {
       const firstRepo = repoList[0];
-      
+      const ownerLogin = firstRepo.owner_id;
+
       console.log(`📥 Processing installation ${installationId}`);
-      console.log(`   Owner: ${firstRepo.owner_id}`);
+      console.log(`   Owner: ${ownerLogin}`);
       console.log(`   Repos: ${repoList.length}`);
 
       // Create installation entry
@@ -43,10 +52,10 @@ async function migrateExistingData() {
         where: { installation_id: BigInt(installationId) },
         create: {
           installation_id: BigInt(installationId),
-          owner_type: firstRepo.owner_id.includes('/') ? 'ORG' : 'USER',
-          owner_id: firstRepo.owner_id,
-          owner_login: firstRepo.owner_id,
-          installed_scope: repoList.length > 1 ? 'org' : 'repo',
+          owner_type: "USER", // Adjust if needed
+          owner_id: ownerLogin,
+          owner_login: ownerLogin,
+          installed_scope: repoList.length > 1 ? "org" : "repo",
           created_at: new Date(),
           updated_at: new Date(),
         },
@@ -80,30 +89,29 @@ async function migrateExistingData() {
       console.log();
     }
 
-    // Update repositories to enable paid features for testing
+    // Update test repo to be paid
     await prisma.repositories.updateMany({
       where: {
-        full_name: 'reporeply/reporeply-testing',
+        full_name: "reporeply/reporeply-testing",
       },
       data: {
         is_paid: true,
-        plan_tier: 'pro',
+        plan_tier: "pro",
         realtime_enabled: true,
       },
     });
 
-    console.log('🎉 Migration complete!\n');
+    console.log("🎉 Migration complete!\n");
 
     // Show summary
     const installationCount = await prisma.installations.count();
     const installationRepoCount = await prisma.installation_repos.count();
 
-    console.log('📊 Summary:');
+    console.log("📊 Summary:");
     console.log(`   Installations: ${installationCount}`);
     console.log(`   Installation Repos: ${installationRepoCount}`);
-
   } catch (error) {
-    console.error('❌ Migration failed:', error);
+    console.error("❌ Migration failed:", error);
   } finally {
     await prisma.$disconnect();
   }
