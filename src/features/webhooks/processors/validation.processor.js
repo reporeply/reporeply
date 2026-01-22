@@ -41,7 +41,7 @@ export function isValidCommand(body) {
   const normalized = body.toLowerCase().trim();
 
   // Only respond to @ mentions (case-insensitive)
-  const allowedMentions = ["@reporeply", "@repo", "@reply"];
+  const allowedMentions = ["@reporeply", "@repo", "@reply", "/reporeply", "/repo", "/reply"];
 
   return allowedMentions.some((mention) => normalized.startsWith(mention));
 }
@@ -51,11 +51,15 @@ export function isValidCommand(body) {
  */
 export function isAdminCommand(body) {
   const normalized = body.toLowerCase().trim();
-  return (
-    normalized.startsWith("@reporeply admin") ||
-    normalized.startsWith("@repo admin") ||
-    normalized.startsWith("@reply admin")
-  );
+
+  return [
+    "@reporeply admin",
+    "@repo admin",
+    "@reply admin",
+    "/reporeply admin",
+    "/repo admin",
+    "/reply admin",
+  ].some((prefix) => normalized.startsWith(prefix));
 }
 
 /**
@@ -63,12 +67,8 @@ export function isAdminCommand(body) {
  */
 export function extractCommandText(body) {
   return body
-    .replace(/^@reporeply\s+admin/i, "")
-    .replace(/^@reporeply/i, "")
-    .replace(/^@repo\s+admin/i, "")
-    .replace(/^@repo/i, "")
-    .replace(/^@reply\s+admin/i, "")
-    .replace(/^@reply/i, "")
+    .replace(/^(@|\/)(reporeply|repo|reply)\s+admin/i, "")
+    .replace(/^(@|\/)(reporeply|repo|reply)/i, "")
     .trim();
 }
 
