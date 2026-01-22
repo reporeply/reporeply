@@ -26,13 +26,14 @@ export async function handleIssueOpened(payload) {
         id: `${repoId}#${issue.number}`,
         repo_id: repoId,
         issue_number: issue.number,
+        title: issue.title || "Untitled", // ✅ ADDED
         state: issue.state,
         is_pull_request: false,
         author_id: issue.user.id.toString(),
-        assignees: issue.assignees.map((a) => a.id.toString()),
-        labels: issue.labels.map((l) => l.name),
-        comments_count: 0,
-        body_length: issue.body?.length || 0,
+        author_login: issue.user.login, // ✅ ADDED
+        assignees: issue.assignees?.map((a) => a.login) || [], // ✅ FIXED - use login not id
+        labels: issue.labels?.map((l) => l.name) || [],
+        comments_count: issue.comments || 0, // ✅ FIXED
         created_at: new Date(issue.created_at),
         updated_at: new Date(issue.updated_at),
         closed_at: null,
@@ -111,9 +112,9 @@ export async function handleIssueEdited(payload) {
         },
       },
       data: {
-        labels: issue.labels.map((l) => l.name),
-        assignees: issue.assignees.map((a) => a.id.toString()),
-        body_length: issue.body?.length || 0,
+        title: issue.title || "Untitled", // ✅ ADDED
+        labels: issue.labels?.map((l) => l.name) || [],
+        assignees: issue.assignees?.map((a) => a.login) || [], // ✅ FIXED - use login not id
         updated_at: new Date(issue.updated_at),
       },
     });
@@ -140,10 +141,12 @@ export async function handlePROpened(payload) {
         id: `${repoId}#pr${pr.number}`,
         repo_id: repoId,
         pr_number: pr.number,
+        title: pr.title || "Untitled", // ✅ ADDED
         state: pr.state,
         author_id: pr.user.id.toString(),
+        author_login: pr.user.login, // ✅ ADDED
         reviewers: [],
-        labels: pr.labels.map((l) => l.name),
+        labels: pr.labels?.map((l) => l.name) || [],
         commits_count: pr.commits || 0,
         files_changed: pr.changed_files || 0,
         additions: pr.additions || 0,
@@ -299,7 +302,9 @@ async function updateRepoInsights(repoId, updates) {
           repo_id: repoId,
           open_issues_count: updates.increment_open_issues || 0,
           open_pr_count: updates.increment_open_prs || 0,
-          ...updates,
+          last_issue_at: updates.last_issue_at || null,
+          last_pr_at: updates.last_pr_at || null,
+          last_commit_at: updates.last_commit_at || null,
         },
       });
       return;
