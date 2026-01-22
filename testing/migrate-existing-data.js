@@ -1,4 +1,4 @@
-import { prisma } from '../../core/database/prisma.client.js';
+import { prisma } from '../src/core/database/prisma.client.js';
 
 async function migrateExistingData() {
   console.log('🔄 Migrating existing installation data...\n');
