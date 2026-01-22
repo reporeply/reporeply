@@ -1,7 +1,7 @@
 /**
  * Enhanced Routes Configuration
  * Integrates installation, scanning, content, collaboration, AND REMINDERS
- * 
+ *
  * @file routes.config.js
  * @location config/routes.config.js
  */
@@ -73,7 +73,9 @@ export function setupRoutes(app) {
       }
 
       const installationId = req.body.installation?.id;
-      console.log(`\n[Webhook] Event: ${event}, Action: ${action}, Installation: ${installationId}`);
+      console.log(
+        `\n[Webhook] Event: ${event}, Action: ${action}, Installation: ${installationId}`,
+      );
 
       /* -------------------- Installation Events -------------------- */
       if (event === "installation") {
@@ -187,11 +189,11 @@ export function setupRoutes(app) {
 
       // Unknown event
       res.sendStatus(200);
-    })
+    }),
   );
 
   /* ==================== API Routes ==================== */
-  
+
   // Installation management
   app.use("/api/installations", installationRoutes);
 
@@ -217,7 +219,7 @@ export function setupRoutes(app) {
     asyncHandler(async (req, res) => {
       await handleDailyCron();
       res.send("Daily inactivity scan completed");
-    })
+    }),
   );
 
   /* ==================== 404 Handler ==================== */

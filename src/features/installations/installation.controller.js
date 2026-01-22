@@ -1,5 +1,5 @@
 /**
- * Installation Controller
+ * Installation Controller - FIXED
  * 
  * @file installation.controller.js
  * @location src/features/installations/installation.controller.js
@@ -11,10 +11,10 @@ import {
   handleReposAdded,
   handleReposRemoved,
 } from "./handlers/installation.handler.js";
-import { getInstallationForRepo } from "./installation.service.js";
 
 /**
  * Main webhook handler for installation events
+ * POST /api/installations/webhook
  */
 export async function handleInstallationWebhook(req, res) {
   const event = req.headers["x-github-event"];
@@ -55,41 +55,6 @@ export async function handleInstallationWebhook(req, res) {
     });
   } catch (error) {
     console.error("[Installation Webhook] Error:", error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-    });
-  }
-}
-
-/**
- * Get installation status for a repository
- */
-export async function getInstallationStatus(req, res) {
-  const { repoFullName } = req.params;
-
-  try {
-    const installation = await getInstallationForRepo(repoFullName);
-
-    if (!installation) {
-      return res.status(404).json({
-        installed: false,
-        message: "Repository is not installed",
-      });
-    }
-
-    res.status(200).json({
-      installed: true,
-      installation: {
-        id: installation.installation_id.toString(),
-        owner_type: installation.owner_type,
-        owner_login: installation.owner_login,
-        installed_scope: installation.installed_scope,
-        created_at: installation.created_at,
-      },
-    });
-  } catch (error) {
-    console.error("[Installation Controller] Error:", error);
     res.status(500).json({
       success: false,
       error: error.message,
