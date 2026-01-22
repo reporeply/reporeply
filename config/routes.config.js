@@ -1,6 +1,6 @@
 /**
  * Enhanced Routes Configuration
- * Integrates installation, scanning, content, and collaboration features
+ * Integrates installation, scanning, content, collaboration, AND REMINDERS
  * 
  * @file routes.config.js
  * @location config/routes.config.js
@@ -44,6 +44,7 @@ import {
 import installationRoutes from "../src/features/installations/installation.routes.js";
 import contentRoutes from "../src/features/content/content.routes.js";
 import collaborationRoutes from "../src/features/collaboration/collaboration.routes.js";
+import reminderRoutes from "../src/features/reminders/reminders.routes.js"; // ✅ ADD THIS
 
 // GitLab & Telegram
 import gitlabRoutes from "../src/features/auth/providers/gitlab.provider.js";
@@ -199,6 +200,9 @@ export function setupRoutes(app) {
 
   // Collaboration (RepoReply chat)
   app.use("/api/collaboration", collaborationRoutes);
+
+  // ✅ ADD THIS - Reminders
+  app.use("/api/reminders", reminderRoutes);
 
   /* ==================== GitLab Routes ==================== */
   app.use("/gitlab", gitlabRoutes);

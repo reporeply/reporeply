@@ -8,6 +8,7 @@ import { setupMiddleware } from "../config/middleware.config.js";
 import { setupRoutes } from "../config/routes.config.js";
 import { setupErrorHandlers } from "../config/error-handlers.config.js";
 import { startServer } from "../config/server.config.js";
+import "./features/reminders/scheduler/index.js"
 
 // Import the new bot system (adjust path based on your structure)
 import bots from "./features/integrations/telegram/telegram.service.js";
