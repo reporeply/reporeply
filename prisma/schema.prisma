@@ -1,4 +1,4 @@
-//Prisma Version 1.0
+//Prisma Version 3.0 - Full Content Support + Real-time Collaboration
 
 datasource db {
   provider = "postgresql"
@@ -22,7 +22,15 @@ model repositories {
   full_name       String          @unique
   owner_id        String
   is_active       Boolean?        @default(true)
-  installation_id BigInt?         // Track which installation owns this
+  installation_id BigInt?
+  indexed         Boolean?        @default(false)
+  indexed_at      DateTime?       @db.Timestamp(6)
+  
+  // Paid features
+  is_paid         Boolean?        @default(false)
+  plan_tier       String?         // free | pro | enterprise
+  realtime_enabled Boolean?       @default(false)
+  
   created_at      DateTime?       @default(now()) @db.Timestamp(6)
   updated_at      DateTime?       @default(now()) @updatedAt @db.Timestamp(6)
   deleted_at      DateTime?       @db.Timestamp(6)
@@ -32,9 +40,331 @@ model repositories {
   reminders       reminders[]
   repo_features   repo_features[]
   users           users           @relation(fields: [owner_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  repo_metadata   repo_metadata?
+  repo_insights   repo_insights?
+  issues          issues[]
+  pull_requests   pull_requests[]
+  contributors    contributors[]
   
   @@index([owner_id], map: "idx_repositories_owner")
   @@index([is_active], map: "idx_repositories_active")
+  @@index([installation_id], map: "idx_repositories_installation")
+  @@index([indexed], map: "idx_repositories_indexed")
+  @@index([is_paid], map: "idx_repositories_paid")
+}
+
+model installations {
+  installation_id BigInt    @id
+  owner_type      String    // USER | ORG
+  owner_id        String
+  owner_login     String
+  installed_by    String?
+  installed_scope String    // repo | org
+  access_token    String?   @db.Text
+  expires_at      DateTime? @db.Timestamp(6)
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  updated_at      DateTime? @default(now()) @updatedAt @db.Timestamp(6)
+  
+  installation_repos installation_repos[]
+  
+  @@index([owner_id], map: "idx_installations_owner")
+  @@index([owner_type], map: "idx_installations_type")
+}
+
+model installation_repos {
+  id              Int           @id @default(autoincrement())
+  installation_id BigInt
+  repo_id         String
+  repo_full_name  String
+  is_active       Boolean?      @default(true)
+  added_at        DateTime?     @default(now()) @db.Timestamp(6)
+  
+  installations   installations @relation(fields: [installation_id], references: [installation_id], onDelete: Cascade)
+  
+  @@unique([installation_id, repo_id])
+  @@index([installation_id], map: "idx_installation_repos_install")
+  @@index([repo_id], map: "idx_installation_repos_repo")
+}
+
+model repo_metadata {
+  repo_id         String    @id
+  default_branch  String?
+  visibility      String?
+  language        String?
+  size_kb         Int?
+  stars_count     Int?      @default(0)
+  forks_count     Int?      @default(0)
+  has_issues      Boolean?  @default(true)
+  has_wiki        Boolean?  @default(false)
+  created_at      DateTime? @db.Timestamp(6)
+  pushed_at       DateTime? @db.Timestamp(6)
+  
+  repositories    repositories @relation(fields: [repo_id], references: [id], onDelete: Cascade)
+}
+
+model repo_insights {
+  repo_id                String    @id
+  open_issues_count      Int?      @default(0)
+  open_pr_count          Int?      @default(0)
+  stale_issues_count     Int?      @default(0)
+  avg_issue_close_days   Float?
+  avg_pr_merge_days      Float?
+  total_contributors     Int?      @default(0)
+  active_contributors    Int?      @default(0)
+  last_issue_at          DateTime? @db.Timestamp(6)
+  last_pr_at             DateTime? @db.Timestamp(6)
+  last_commit_at         DateTime? @db.Timestamp(6)
+  updated_at             DateTime? @default(now()) @updatedAt @db.Timestamp(6)
+  
+  repositories           repositories @relation(fields: [repo_id], references: [id], onDelete: Cascade)
+}
+
+// ENHANCED: Issues with full content support (lazy loaded)
+model issues {
+  id              String    @id
+  repo_id         String
+  issue_number    Int
+  state           String    // open | closed
+  is_pull_request Boolean?  @default(false)
+  
+  // Always fetched (Tier 1)
+  title           String
+  author_id       String
+  author_login    String
+  assignees       String[]
+  labels          String[]
+  comments_count  Int?      @default(0)
+  created_at      DateTime  @db.Timestamp(6)
+  updated_at      DateTime  @db.Timestamp(6)
+  closed_at       DateTime? @db.Timestamp(6)
+  last_comment_at DateTime? @db.Timestamp(6)
+  
+  // Lazy fetched (Tier 2 - Paid only)
+  body_raw        String?   @db.Text  // Fetched on demand
+  body_html       String?   @db.Text  // Rendered HTML
+  body_fetched    Boolean?  @default(false)
+  body_fetched_at DateTime? @db.Timestamp(6)
+  
+  // Real-time collaboration
+  realtime_enabled Boolean? @default(false)
+  comments_fetched Boolean? @default(false)
+  last_synced_at   DateTime? @db.Timestamp(6)
+  
+  // AI Processing
+  ai_summary      String?   @db.Text
+  ai_complexity   String?   // low | medium | high
+  ai_category     String?
+  ai_processed    Boolean?  @default(false)
+  
+  repositories    repositories      @relation(fields: [repo_id], references: [id], onDelete: Cascade)
+  comments        issue_comments[]
+  reporeply_threads reporeply_threads[]
+  
+  @@unique([repo_id, issue_number])
+  @@index([repo_id, state], map: "idx_issues_repo_state")
+  @@index([author_id], map: "idx_issues_author")
+  @@index([created_at], map: "idx_issues_created")
+  @@index([body_fetched], map: "idx_issues_body_fetched")
+  @@index([realtime_enabled], map: "idx_issues_realtime")
+}
+
+// NEW: Issue comments (only fetched when needed)
+model issue_comments {
+  id              String    @id
+  issue_id        String
+  comment_number  Int       // GitHub comment ID
+  author_id       String
+  author_login    String
+  body_raw        String    @db.Text
+  body_html       String?   @db.Text
+  created_at      DateTime  @db.Timestamp(6)
+  updated_at      DateTime  @db.Timestamp(6)
+  
+  issues          issues    @relation(fields: [issue_id], references: [id], onDelete: Cascade)
+  
+  @@unique([issue_id, comment_number])
+  @@index([issue_id], map: "idx_issue_comments_issue")
+  @@index([author_id], map: "idx_issue_comments_author")
+  @@index([created_at], map: "idx_issue_comments_created")
+}
+
+// ENHANCED: Pull Requests with full content support
+model pull_requests {
+  id              String    @id
+  repo_id         String
+  pr_number       Int
+  state           String    // open | closed | merged
+  
+  // Always fetched (Tier 1)
+  title           String
+  author_id       String
+  author_login    String
+  reviewers       String[]
+  labels          String[]
+  commits_count   Int?      @default(0)
+  files_changed   Int?      @default(0)
+  additions       Int?      @default(0)
+  deletions       Int?      @default(0)
+  created_at      DateTime  @db.Timestamp(6)
+  updated_at      DateTime  @db.Timestamp(6)
+  merged_at       DateTime? @db.Timestamp(6)
+  closed_at       DateTime? @db.Timestamp(6)
+  
+  // Lazy fetched (Tier 2 - Paid only)
+  body_raw        String?   @db.Text
+  body_html       String?   @db.Text
+  body_fetched    Boolean?  @default(false)
+  body_fetched_at DateTime? @db.Timestamp(6)
+  
+  // Real-time collaboration
+  realtime_enabled Boolean? @default(false)
+  comments_fetched Boolean? @default(false)
+  last_synced_at   DateTime? @db.Timestamp(6)
+  
+  // AI Processing
+  ai_summary      String?   @db.Text
+  ai_risk_level   String?   // low | medium | high
+  ai_review_notes String?   @db.Text
+  ai_processed    Boolean?  @default(false)
+  
+  repositories    repositories      @relation(fields: [repo_id], references: [id], onDelete: Cascade)
+  comments        pr_comments[]
+  reviews         pr_reviews[]
+  reporeply_threads reporeply_threads[]
+  
+  @@unique([repo_id, pr_number])
+  @@index([repo_id, state], map: "idx_prs_repo_state")
+  @@index([author_id], map: "idx_prs_author")
+  @@index([created_at], map: "idx_prs_created")
+  @@index([body_fetched], map: "idx_prs_body_fetched")
+  @@index([realtime_enabled], map: "idx_prs_realtime")
+}
+
+// NEW: PR comments (only fetched when needed)
+model pr_comments {
+  id              String    @id
+  pr_id           String
+  comment_number  Int
+  author_id       String
+  author_login    String
+  body_raw        String    @db.Text
+  body_html       String?   @db.Text
+  created_at      DateTime  @db.Timestamp(6)
+  updated_at      DateTime  @db.Timestamp(6)
+  
+  pull_requests   pull_requests @relation(fields: [pr_id], references: [id], onDelete: Cascade)
+  
+  @@unique([pr_id, comment_number])
+  @@index([pr_id], map: "idx_pr_comments_pr")
+  @@index([author_id], map: "idx_pr_comments_author")
+  @@index([created_at], map: "idx_pr_comments_created")
+}
+
+// NEW: PR reviews (only fetched when needed)
+model pr_reviews {
+  id              String    @id
+  pr_id           String
+  review_number   Int
+  author_id       String
+  author_login    String
+  state           String    // APPROVED | CHANGES_REQUESTED | COMMENTED
+  body_raw        String?   @db.Text
+  submitted_at    DateTime  @db.Timestamp(6)
+  
+  pull_requests   pull_requests @relation(fields: [pr_id], references: [id], onDelete: Cascade)
+  
+  @@unique([pr_id, review_number])
+  @@index([pr_id], map: "idx_pr_reviews_pr")
+  @@index([author_id], map: "idx_pr_reviews_author")
+}
+
+// NEW: RepoReply native chat/threads (product moat!)
+model reporeply_threads {
+  id              String    @id
+  repo_id         String
+  issue_id        String?
+  pr_id           String?
+  
+  thread_type     String    // discussion | annotation | ai_suggestion | team_note
+  title           String?
+  status          String?   @default("open") // open | resolved | archived
+  
+  created_by      String
+  created_at      DateTime  @default(now()) @db.Timestamp(6)
+  updated_at      DateTime  @default(now()) @updatedAt @db.Timestamp(6)
+  resolved_at     DateTime? @db.Timestamp(6)
+  resolved_by     String?
+  
+  issues          issues?         @relation(fields: [issue_id], references: [id], onDelete: Cascade)
+  pull_requests   pull_requests?  @relation(fields: [pr_id], references: [id], onDelete: Cascade)
+  messages        reporeply_messages[]
+  
+  @@index([issue_id], map: "idx_threads_issue")
+  @@index([pr_id], map: "idx_threads_pr")
+  @@index([status], map: "idx_threads_status")
+  @@index([created_at], map: "idx_threads_created")
+}
+
+// NEW: RepoReply messages (internal chat)
+model reporeply_messages {
+  id              String    @id
+  thread_id       String
+  user_id         String
+  username        String
+  message         String    @db.Text
+  message_type    String?   @default("text") // text | ai_suggestion | code_snippet
+  
+  // AI metadata
+  is_ai_generated Boolean?  @default(false)
+  ai_confidence   Float?
+  
+  created_at      DateTime  @default(now()) @db.Timestamp(6)
+  updated_at      DateTime  @default(now()) @updatedAt @db.Timestamp(6)
+  edited_at       DateTime? @db.Timestamp(6)
+  
+  reporeply_threads reporeply_threads @relation(fields: [thread_id], references: [id], onDelete: Cascade)
+  
+  @@index([thread_id], map: "idx_messages_thread")
+  @@index([user_id], map: "idx_messages_user")
+  @@index([created_at], map: "idx_messages_created")
+}
+
+model contributors {
+  id              Int       @id @default(autoincrement())
+  repo_id         String
+  user_id         String
+  username        String
+  commits_count   Int?      @default(0)
+  prs_opened      Int?      @default(0)
+  issues_opened   Int?      @default(0)
+  reviews_done    Int?      @default(0)
+  last_active_at  DateTime? @db.Timestamp(6)
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  
+  repositories    repositories @relation(fields: [repo_id], references: [id], onDelete: Cascade)
+  
+  @@unique([repo_id, user_id])
+  @@index([repo_id], map: "idx_contributors_repo")
+  @@index([user_id], map: "idx_contributors_user")
+  @@index([last_active_at], map: "idx_contributors_active")
+}
+
+model scan_jobs {
+  id              String    @id
+  repo_id         String
+  job_type        String    // full_scan | deep_fetch | incremental_sync | rescan
+  status          String    @default("pending")
+  progress        Int?      @default(0)
+  total_items     Int?      @default(0)
+  processed_items Int?      @default(0)
+  error_message   String?   @db.Text
+  started_at      DateTime? @db.Timestamp(6)
+  completed_at    DateTime? @db.Timestamp(6)
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  
+  @@index([repo_id], map: "idx_scan_jobs_repo")
+  @@index([status], map: "idx_scan_jobs_status")
+  @@index([created_at], map: "idx_scan_jobs_created")
 }
 
 model reminders {
@@ -43,17 +373,16 @@ model reminders {
   issue_number  Int
   message       String?
   scheduled_at  DateTime     @db.Timestamp(6)
-  status        String?      @default("pending") // pending | processing | sent | failed | dead | canceled
+  status        String?      @default("pending")
   retry_count   Int?         @default(0)
   error         String?
   sent_at       DateTime?    @db.Timestamp(6)
   created_at    DateTime?    @default(now()) @db.Timestamp(6)
   updated_at    DateTime?    @default(now()) @updatedAt @db.Timestamp(6)
-  created_by    String?      // GitHub username who created this
+  created_by    String?
   last_retry_at DateTime?    @db.Timestamp(6)
-  
-  // Relations
-  repositories  repositories @relation(fields: [repo_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  repositories  repositories @relation(fields: [repo_id], references: [id], onDelete: Cascade)
 
   @@index([scheduled_at], map: "idx_reminders_schedule")
   @@index([status], map: "idx_reminders_status")
