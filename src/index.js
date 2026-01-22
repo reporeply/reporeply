@@ -13,9 +13,6 @@ import "./features/reminders/scheduler/index.js"
 // Import the new bot system (adjust path based on your structure)
 import bots from "./features/integrations/telegram/telegram.service.js";
 
-// Import reminder scheduler (keep your existing reminder logic)
-import "./features/reminders/scheduler/scheduler.service.js";
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
